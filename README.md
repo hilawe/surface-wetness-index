@@ -103,6 +103,15 @@ its own synthetic input and always runs.
   dsc pass separation, CF metadata) are pinned by the test suite, not just
   documentation.
 
+## Sibling project
+
+Forward research that uses the same SSM/I and SSMIS brightness-temperature
+record to derive a physically based land surface microwave emissivity, in
+combination with the NOAA GridSat-B1 cloud-cleared infrared product, lives
+in [github.com/hilawe/surface-wetness-lsme](https://github.com/hilawe/surface-wetness-lsme).
+The two repositories share a minimal core of channel and grid conventions
+but otherwise stand alone.
+
 ## References
 
 The algorithm is grounded in the published Basist work, in particular:
