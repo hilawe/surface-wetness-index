@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# C build artifacts
+src/libswi.dylib
+src/libswi.so
+src/swi_smoke
+src/*.o
+
+# Data and large build artifacts (never committed).
+data/
+*.nc
+*.tar
+*.gz

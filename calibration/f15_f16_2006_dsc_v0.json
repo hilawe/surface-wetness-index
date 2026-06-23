@@ -1,0 +1,50 @@
+{
+  "model": "multi",
+  "coef_v": [
+    0.9162060803244299,
+    -0.032947912377717783,
+    0.12374300313799655,
+    -1.622596970652218
+  ],
+  "coef_h": [
+    0.9082927827074865,
+    -0.04225846824203215,
+    0.13081346884769568,
+    1.2469015307729001
+  ],
+  "stats_v": {
+    "rms": 2.850375472347888,
+    "bias": 1.0058121282047863e-10,
+    "r2": 0.9948685814830776
+  },
+  "stats_h": {
+    "rms": 3.227203709981517,
+    "bias": 8.873165604880159e-11,
+    "r2": 0.9948077021324784
+  },
+  "raw_bias_v": -0.16787488758563995,
+  "raw_bias_h": -0.2863789498806,
+  "n": 921552,
+  "meta": {
+    "pairs": [
+      [
+        "../data/csu_overlap/CSU_SSMI_FCDR-GRID_V02R00_F15_D20060115.nc",
+        "../data/csu_overlap/CSU_SSMIS_FCDR-GRID_V02R00_F16_D20060115.nc"
+      ],
+      [
+        "../data/csu_overlap/CSU_SSMI_FCDR-GRID_V02R00_F15_D20060315.nc",
+        "../data/csu_overlap/CSU_SSMIS_FCDR-GRID_V02R00_F16_D20060315.nc"
+      ],
+      [
+        "../data/csu_overlap/CSU_SSMI_FCDR-GRID_V02R00_F15_D20060515.nc",
+        "../data/csu_overlap/CSU_SSMIS_FCDR-GRID_V02R00_F16_D20060515.nc"
+      ],
+      [
+        "../data/csu_overlap/CSU_SSMI_FCDR-GRID_V02R00_F15_D20060715.nc",
+        "../data/csu_overlap/CSU_SSMIS_FCDR-GRID_V02R00_F16_D20060715.nc"
+      ]
+    ],
+    "pass": "dsc",
+    "model": "multi"
+  }
+}
