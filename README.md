@@ -1,4 +1,4 @@
-# Surface Wetness Index (Basist) revival
+# Surface Wetness Index
 
 [![tests](https://github.com/hilawe/surface-wetness-index/actions/workflows/ci.yml/badge.svg)](https://github.com/hilawe/surface-wetness-index/actions/workflows/ci.yml)
 
@@ -32,7 +32,7 @@ inundation fraction.
 ## Principal Investigator
 
 Hilawe Semunegus (NOAA National Centers for Environmental Information) is the
-Principal Investigator for the revival, responsible for the modern
+Principal Investigator for the project, responsible for the modern
 reimplementation, validation, and stewardship of the rebuilt record. Alan Basist
 is the original algorithm author and is credited as such in all derived
 products. The algorithm itself stands in the NOAA passive-microwave hydrology
@@ -114,7 +114,7 @@ but otherwise stand alone.
 
 ## References
 
-The algorithm is grounded in the published Basist work, in particular:
+The algorithm is grounded in these papers:
 
 - Basist, A., N. C. Grody, T. C. Peterson, and C. N. Williams (1998).
   Using the Special Sensor Microwave Imager to monitor land surface
