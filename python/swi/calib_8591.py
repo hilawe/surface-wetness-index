@@ -94,16 +94,25 @@ def _stats(pred, true):
             "r2": float(1.0 - np.var(res) / np.var(true))}
 
 
-def fit(c, multi=True):
-    """Fit the 85-from-91 adjustment. Returns coefficients and diagnostics."""
-    n = c["n"]
-    ones = np.ones(n)
+def _design_matrices(c, multi):
+    ones = np.ones(c["n"])
     if multi:
         Xv = np.column_stack([c["t91v"], c["v22"], c["v37"], ones])
         Xh = np.column_stack([c["t91h"], c["h19"], c["h37"], ones])
     else:
         Xv = np.column_stack([c["t91v"], ones])
         Xh = np.column_stack([c["t91h"], ones])
+    return Xv, Xh
+
+
+def fit(c, multi=True):
+    """Fit the 85-from-91 adjustment. Returns coefficients and diagnostics.
+
+    Diagnostics are in-sample by default. Use cross_validated_fit() to get a
+    held-out estimate of the fit quality on data not used to determine the
+    coefficients.
+    """
+    Xv, Xh = _design_matrices(c, multi)
     bv, *_ = np.linalg.lstsq(Xv, c["t85v"], rcond=None)
     bh, *_ = np.linalg.lstsq(Xh, c["t85h"], rcond=None)
     return {
@@ -114,8 +123,176 @@ def fit(c, multi=True):
         # naive characterization for reference
         "raw_bias_v": float((c["t91v"] - c["t85v"]).mean()),
         "raw_bias_h": float((c["t91h"] - c["t85h"]).mean()),
+        "n": c["n"],
+    }
+
+
+def cross_validated_fit(c, multi=True, k=5, seed=0):
+    """k-fold cross-validated fit quality for the 85-from-91 adjustment.
+
+    Splits the pooled cells into k random folds, fits on k-1 folds, scores on the
+    held-out fold, and aggregates the held-out RMS, bias, and r2 across all
+    folds. The full-data coefficients are also returned so the saved fit uses
+    the same model that would have been picked without cross-validation; CV
+    diagnostics are the honest estimate of how that model performs on data
+    outside the fit. Default k=5.
+
+    This addresses the adversarial-review finding that the 85-to-91 calibration
+    reports in-sample fit diagnostics only. Use the cv_stats fields as the
+    headline; the in-sample stats are inflated by definition.
+    """
+    n = c["n"]
+    rng = np.random.default_rng(seed)
+    fold = rng.integers(0, k, size=n)
+    Xv, Xh = _design_matrices(c, multi)
+    yv = c["t85v"]
+    yh = c["t85h"]
+    preds_v = np.empty(n)
+    preds_h = np.empty(n)
+    for f in range(k):
+        train = fold != f
+        test = fold == f
+        bv, *_ = np.linalg.lstsq(Xv[train], yv[train], rcond=None)
+        bh, *_ = np.linalg.lstsq(Xh[train], yh[train], rcond=None)
+        preds_v[test] = Xv[test] @ bv
+        preds_h[test] = Xh[test] @ bh
+    # Full-data coefficients for the operational fit.
+    bv_full, *_ = np.linalg.lstsq(Xv, yv, rcond=None)
+    bh_full, *_ = np.linalg.lstsq(Xh, yh, rcond=None)
+    return {
+        "model": "multi" if multi else "linear",
+        "coef_v": bv_full, "coef_h": bh_full,
+        "stats_v": _stats(Xv @ bv_full, yv),
+        "stats_h": _stats(Xh @ bh_full, yh),
+        "cv_stats_v": _stats(preds_v, yv),
+        "cv_stats_h": _stats(preds_h, yh),
+        "cv_k": k,
+        "cv_seed": seed,
+        "raw_bias_v": float((c["t91v"] - yv).mean()),
+        "raw_bias_h": float((c["t91h"] - yh).mean()),
         "n": n,
     }
+
+
+def cross_validated_fit_by_pair(c_by_pair, multi=True):
+    """Leave-one-pair-out cross-validation across satellite or date pairs.
+
+    Per-satellite-pair holdout is a stronger test than random k-fold because the
+    leakage we worry about is shared sensor characteristics within one pair, not
+    random per-cell noise. c_by_pair is a dict mapping pair-label to a per-pair
+    pooled cell dict (as returned by collocate or pool on a single pair). The
+    function trains on every-pair-except-one and evaluates on the held-out
+    pair, repeated for each pair. Returns a dict with cv_per_pair and pooled
+    cv_stats_v/cv_stats_h on the union of held-out predictions.
+
+    For the operational coefficients, use fit() on pool(...) of all pairs.
+    """
+    labels = list(c_by_pair.keys())
+    if len(labels) < 2:
+        raise ValueError("need at least two pairs for leave-one-pair-out CV")
+    # Validate every pair up front, so a malformed held-out pair fails with the
+    # clear ValueError instead of a raw KeyError later inside _design_matrices.
+    _validate_calibration_dicts([c_by_pair[l] for l in labels], multi,
+                                where="cross_validated_fit_by_pair")
+    pair_stats = {}
+    pv_all, yv_all, ph_all, yh_all = [], [], [], []
+    for held in labels:
+        train_labels = [l for l in labels if l != held]
+        c_train = _pool_dicts([c_by_pair[l] for l in train_labels], multi=multi)
+        Xv_tr, Xh_tr = _design_matrices(c_train, multi)
+        bv, *_ = np.linalg.lstsq(Xv_tr, c_train["t85v"], rcond=None)
+        bh, *_ = np.linalg.lstsq(Xh_tr, c_train["t85h"], rcond=None)
+        c_held = c_by_pair[held]
+        Xv_he, Xh_he = _design_matrices(c_held, multi)
+        pv = Xv_he @ bv
+        ph = Xh_he @ bh
+        pair_stats[held] = {
+            "stats_v": _stats(pv, c_held["t85v"]),
+            "stats_h": _stats(ph, c_held["t85h"]),
+            "n": c_held["n"],
+        }
+        pv_all.append(pv); yv_all.append(c_held["t85v"])
+        ph_all.append(ph); yh_all.append(c_held["t85h"])
+    pv_all = np.concatenate(pv_all)
+    ph_all = np.concatenate(ph_all)
+    yv_all = np.concatenate(yv_all)
+    yh_all = np.concatenate(yh_all)
+    return {
+        "cv_per_pair": pair_stats,
+        "cv_stats_v": _stats(pv_all, yv_all),
+        "cv_stats_h": _stats(ph_all, yh_all),
+        "n_held": pv_all.size,
+    }
+
+
+# Core targets and predictors needed by every fit shape. Linear fits use only
+# these four (true 85 channels and the 91 predictors); multi fits add the
+# covariates below for the V and H designs.
+_CORE_KEYS = ("t85v", "t85h", "t91v", "t91h")
+# Covariates added by multi fits.
+_COVARIATE_KEYS = ("v22", "v37", "h19", "h37")
+
+
+def _validate_calibration_dicts(cs, multi, where="_pool_dicts"):
+    """Raise ValueError if any per-pair dict in cs is missing keys required for
+    the requested fit shape, lacks 'n', or has arrays whose lengths do not
+    agree with 'n'. Centralised so the error path is the same whether we are
+    pooling for training or evaluating a single held-out pair.
+    """
+    for i, c in enumerate(cs):
+        if "n" not in c:
+            raise ValueError(
+                f"{where}: per-pair dict {i} is missing the required 'n' key")
+    for k in _CORE_KEYS:
+        for i, c in enumerate(cs):
+            if k not in c:
+                raise ValueError(
+                    f"{where}: required calibration key {k!r} missing from "
+                    f"per-pair dict {i}; cannot fit")
+    if multi:
+        missing_in_pair = []
+        for i, c in enumerate(cs):
+            absent = [k for k in _COVARIATE_KEYS if k not in c]
+            if absent:
+                missing_in_pair.append((i, absent))
+        if missing_in_pair:
+            raise ValueError(
+                f"{where}(multi=True) needs every per-pair dict to carry all "
+                f"of {_COVARIATE_KEYS}. Missing in pair(s): "
+                + ", ".join(f"{i} (lacks {ks})" for i, ks in missing_in_pair)
+                + ". Use multi=False for a linear pool across these pairs.")
+    # Length agreement: every numeric array key present must match the pair's n.
+    arr_keys = list(_CORE_KEYS) + (list(_COVARIATE_KEYS) if multi else [])
+    for i, c in enumerate(cs):
+        n = c["n"]
+        for k in arr_keys:
+            if k in c and len(c[k]) != n:
+                raise ValueError(
+                    f"{where}: per-pair dict {i} has key {k!r} of length "
+                    f"{len(c[k])} but n={n}; arrays must match n")
+
+
+def _pool_dicts(cs, multi=True):
+    """Concatenate per-pair pooled cell dicts on the numeric calibration keys.
+
+    The four core keys (true 85 channels and the 91 predictors) must be present
+    in every per-pair dict; a missing one is a real input error and raises a
+    ValueError naming the key and the pair index. When multi=True, every pair
+    must also carry all four covariates as a complete group: missing any one
+    in any pair is an error, so the caller cannot silently slip into a
+    linear-shaped pool when they asked for a multi fit. When multi=False, the
+    covariates are simply ignored, and pairs may freely carry or not carry
+    them; this is the path used by linear cross-validation when pair dicts
+    were cached for an earlier multi-shape run.
+    Metadata keys (paths, labels) on per-pair dicts are ignored either way.
+    """
+    _validate_calibration_dicts(cs, multi, where="_pool_dicts")
+    out = {k: np.concatenate([c[k] for c in cs]) for k in _CORE_KEYS}
+    if multi:
+        for k in _COVARIATE_KEYS:
+            out[k] = np.concatenate([c[k] for c in cs])
+    out["n"] = sum(c["n"] for c in cs)
+    return out
 
 
 def save_fit(coeffs, path, meta=None):

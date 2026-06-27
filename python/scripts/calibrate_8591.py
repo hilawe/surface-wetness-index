@@ -27,10 +27,19 @@ def report(f):
           f"H {f['raw_bias_h']:+.2f} K")
     print(f"  85V model: coef={np.array2string(f['coef_v'], precision=4)}  "
           f"rms={f['stats_v']['rms']:.2f} K  bias={f['stats_v']['bias']:+.2f}  "
-          f"r2={f['stats_v']['r2']:.3f}")
+          f"r2={f['stats_v']['r2']:.3f}  (in-sample)")
     print(f"  85H model: coef={np.array2string(f['coef_h'], precision=4)}  "
           f"rms={f['stats_h']['rms']:.2f} K  bias={f['stats_h']['bias']:+.2f}  "
-          f"r2={f['stats_h']['r2']:.3f}")
+          f"r2={f['stats_h']['r2']:.3f}  (in-sample)")
+    if "cv_stats_v" in f:
+        print(f"  85V CV ({f.get('cv_k', '?')}-fold):  "
+              f"rms={f['cv_stats_v']['rms']:.2f} K  "
+              f"bias={f['cv_stats_v']['bias']:+.2f}  "
+              f"r2={f['cv_stats_v']['r2']:.3f}  (held-out, honest)")
+        print(f"  85H CV ({f.get('cv_k', '?')}-fold):  "
+              f"rms={f['cv_stats_h']['rms']:.2f} K  "
+              f"bias={f['cv_stats_h']['bias']:+.2f}  "
+              f"r2={f['cv_stats_h']['r2']:.3f}  (held-out, honest)")
 
 
 def compare_product(ssmis_file, f, pass_):
@@ -81,13 +90,20 @@ def main():
     ap.add_argument("--apply", dest="apply_file")
     ap.add_argument("--png")
     ap.add_argument("--save", help="write the fit as JSON to this path")
+    ap.add_argument("--cv-k", type=int, default=5,
+                    help="k-fold cross-validation folds for the honest fit "
+                    "quality estimate. The saved fit uses all data; CV is the "
+                    "diagnostic. Set 0 to skip CV and only report in-sample.")
     a = ap.parse_args()
     if len(a.files) % 2 != 0:
         ap.error("provide pairs: SSM/I then SSMIS, even count")
     pairs = list(zip(a.files[0::2], a.files[1::2]))
     print(f"pooling {len(pairs)} pair(s), pass={a.pass_}")
     c = cal.pool(pairs, pass_=a.pass_)
-    f = cal.fit(c, multi=not a.linear)
+    if a.cv_k and a.cv_k >= 2:
+        f = cal.cross_validated_fit(c, multi=not a.linear, k=a.cv_k)
+    else:
+        f = cal.fit(c, multi=not a.linear)
     report(f)
     if a.save:
         from swi import calib_8591 as _cal
