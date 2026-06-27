@@ -3,9 +3,13 @@
     python -m scripts.validate_esacci PRODUCT.nc YYYYMM [--data-dir DIR] [--png OUT]
 
 ESA CCI Soil Moisture (COMBINED, v09.2) is the community microwave soil-moisture
-climate data record. Unlike ERA5-Land (a reanalysis model), it is
-observation-based and shares the passive-microwave physics family with the
-wetness index, so it is the strongest independent reference for the detector.
+climate data record. It is observation-based, but it merges passive-microwave
+retrievals from many of the same imager channels the wetness index uses, so it
+shares the passive-microwave physics family with the index. Shared sensors and
+seasonal microwave artifacts can inflate apparent agreement, so ESA CCI is
+reported here as a related microwave benchmark rather than as independent
+ground truth. It is shown separately from the physically independent
+references (USCRN in-situ, ERA5-Land reanalysis, SWAMPS inundation).
 
 Daily CCI files for the month are downloaded from CEDA (open access, no API),
 composited to a per-cell monthly mean over flag-clean cells (snow-free,

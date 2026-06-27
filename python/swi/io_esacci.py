@@ -14,9 +14,16 @@ so flag == 0 already drops frozen and densely vegetated cells. Those are exactly
 the Basist index's known blind spots, so the comparison is made only over cells
 where both fields are physically meaningful.
 
-Unlike ERA5-Land (a reanalysis model), ESA CCI is observation-based and shares
-the passive-microwave physics family with the wetness index, so it is the
-strongest independent reference for a microwave surface-wetness detector.
+ESA CCI is observation-based, unlike ERA5-Land (a reanalysis model), but the
+COMBINED product merges passive-microwave retrievals from many of the same DMSP
+and post-DMSP imager channels that the wetness index uses, so it shares the
+passive-microwave physics family with the index. Shared sensors and shared
+seasonal microwave artifacts can inflate apparent agreement. ESA CCI should
+therefore be reported as a related microwave benchmark, not as independent
+ground truth. The ESA CCI ACTIVE-only product (C-band scatterometer-derived)
+is closer to independent and should be preferred where it covers the period
+and domain of interest; the COMBINED product is used here only because it has
+the broader spatiotemporal coverage needed for the validation period.
 """
 
 import glob
