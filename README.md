@@ -24,7 +24,8 @@ serves as the reference oracle, and a vectorized NumPy port reproduces it cell
 for cell at zero mismatches over fifteen million test cells across full branch
 coverage. The product writers emit daily, weekly, and monthly Climate and
 Forecast (CF) compliant NetCDF files, and the index has been validated against
-four independent references that span the modern record: ESA Climate Change
+four references that span the modern record, three physically independent and
+one related microwave benchmark: ESA Climate Change
 Initiative soil moisture, ERA5-Land soil moisture, U.S. Climate Reference
 Network in-situ measurements, and Surface Water Microwave Product Series
 inundation fraction.
@@ -94,7 +95,8 @@ its own synthetic input and always runs.
 - A continuous 1987 to present input through the CSU Brightness Temperature
   FCDR, intercalibrated across the DMSP morning and late-morning constellation
   chains by NOAA-stewarded reprocessing.
-- Validation against four independent reference datasets shows the index is a
+- Validation against four reference datasets, three physically independent and
+  one related microwave benchmark, shows the index is a
   strong wet versus dry surface-water detector, with detection contrast in the
   range expected from the original literature, rather than a quantitative soil
   moisture proxy. That framing matches what Basist and colleagues argued in
