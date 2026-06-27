@@ -14,18 +14,9 @@ import os
 import re
 import sys
 
-from swi import core_numpy, monthly, product
+from swi import core_numpy, monthly, product, calib_8591
 
 
-class _CalibEngine:
-    def __init__(self, coeffs):
-        self.coeffs = coeffs
-
-    def evaluate_kelvin(self, tb):
-        if self.coeffs is not None:
-            from swi import calib_8591 as cal
-            tb = cal.apply(tb, self.coeffs)
-        return core_numpy.evaluate_kelvin(tb)
 
 
 def main():
@@ -60,7 +51,7 @@ def main():
             if m:
                 months.setdefault(m.group(1), []).append(f)
 
-    engine = _CalibEngine(coeffs)
+    engine = calib_8591.make_engine(coeffs)
     for ym in sorted(months):
         out = os.path.join(outdir, f"SWI_F16_{ym}_monthly.nc")
         if os.path.exists(out):

@@ -6,6 +6,40 @@ import pytest
 from swi import monthly
 
 
+def test_mean_accumulator_nan_aware_and_shape_agnostic():
+    """The generalized accumulator: NaNs do not contribute, and adding fields
+    of different trailing shapes works (2-D scalar, 3-D per-channel)."""
+    acc = monthly.MeanAccumulator()
+    acc.add(np.array([[1.0, 2.0], [3.0, np.nan]]))
+    acc.add(np.array([[3.0, np.nan], [5.0, 4.0]]))
+    acc.add(np.array([[5.0, 6.0], [7.0, 6.0]]))
+    m = acc.mean()
+    c = acc.count()
+    assert np.isclose(m[0, 0], 3.0)         # (1+3+5)/3
+    assert np.isclose(m[0, 1], 4.0)         # (2+6)/2, NaN excluded
+    assert np.isclose(m[1, 0], 5.0)         # (3+5+7)/3
+    assert np.isclose(m[1, 1], 5.0)         # (4+6)/2, NaN excluded
+    assert c.tolist() == [[3, 2], [3, 2]]
+    # All-NaN cell -> mean is NaN, count is 0
+    acc2 = monthly.MeanAccumulator()
+    acc2.add(np.array([[np.nan, 1.0]]))
+    acc2.add(np.array([[np.nan, 3.0]]))
+    assert np.isnan(acc2.mean()[0, 0])
+    assert acc2.count()[0, 0] == 0
+
+
+def test_mean_accumulator_works_for_per_channel_stacks():
+    """A (..., nchannel) per-channel field accumulates independently per channel."""
+    acc = monthly.MeanAccumulator()
+    acc.add(np.array([[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]]))
+    acc.add(np.array([[[3.0, np.nan, 5.0], [np.nan, 5.0, 8.0]]]))
+    m = acc.mean()
+    assert np.isclose(m[0, 0, 0], 2.0)         # (1+3)/2
+    assert np.isclose(m[0, 0, 1], 2.0)         # only the 2.0 contributed
+    assert np.isclose(m[0, 1, 1], 5.0)
+    assert np.isclose(m[0, 1, 2], 7.0)         # (6+8)/2
+
+
 def test_accumulator_means_and_frequency():
     shape = (2, 2)
     acc = monthly.Accumulator(shape)

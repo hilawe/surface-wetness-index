@@ -13,18 +13,9 @@ import sys
 
 import numpy as np
 
-from swi import monthly, product, core_numpy
+from swi import monthly, product, core_numpy, calib_8591
 
 
-class _CalibEngine:
-    def __init__(self, coeffs):
-        self.coeffs = coeffs
-
-    def evaluate_kelvin(self, tb):
-        if self.coeffs is not None:
-            from swi import calib_8591 as cal
-            tb = cal.apply(tb, self.coeffs)
-        return core_numpy.evaluate_kelvin(tb)
 
 
 def _date(fname):
@@ -58,7 +49,7 @@ def main():
                       f"from {os.path.basename(calib_path)})")
 
     print(f"compositing {len(files)} day(s)" + (" with calibration" if coeffs else ""))
-    comp = monthly.composite(files, engine=_CalibEngine(coeffs))
+    comp = monthly.composite(files, engine=calib_8591.make_engine(coeffs))
     print(f"  used: asc={comp['used'].get('asc',0)} dsc={comp['used'].get('dsc',0)}  "
           f"skipped: {comp['skipped']}")
 

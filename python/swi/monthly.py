@@ -91,3 +91,71 @@ def composite(files, engine, pass_list=("asc", "dsc")):
             used[p] += 1
     out = {p: accs[p].result() for p in accs}
     return {"lat": lat, "lon": lon, "by_pass": out, "used": used, "skipped": skipped}
+
+
+class MeanAccumulator:
+    """Generic NaN-aware per-cell streaming mean accumulator.
+
+    A drop-in replacement for the ad-hoc ``sum / count`` patterns previously
+    rewritten in several monthly-composite scripts. Lazy-allocated on the first
+    ``add(field)`` so the caller does not need to know the shape ahead of time,
+    and shape-agnostic on the trailing axes so it works for a 2-D scalar field
+    or a (..., nchannel) per-channel stack.
+
+    Usage:
+        acc = MeanAccumulator()
+        for field in stream:
+            acc.add(field)
+        mean = acc.mean()           # NaN where no observations contributed
+        counts = acc.count()        # int array of contributions per cell
+    """
+
+    def __init__(self):
+        self._sum = None
+        self._count = None
+
+    def add(self, field):
+        """Add one field to the running mean. NaN cells do not contribute."""
+        field = np.asarray(field, dtype=np.float64)
+        if self._sum is None:
+            self._sum = np.zeros_like(field)
+            self._count = np.zeros(field.shape, dtype=np.int64)
+        valid = np.isfinite(field)
+        self._sum[valid] += field[valid]
+        self._count[valid] += 1
+        return self
+
+    def mean(self):
+        """Per-cell mean over the added fields. NaN where count is 0."""
+        if self._sum is None:
+            return None
+        denom = np.where(self._count > 0, self._count, 1.0)
+        return np.where(self._count > 0, self._sum / denom, np.nan)
+
+    def count(self):
+        """Per-cell contribution count."""
+        if self._count is None:
+            return None
+        return self._count.copy()
+
+
+def read_wet_product(path, pass_="dsc"):
+    """Read a daily Surface Wetness Index NetCDF and return (wet, temp, snow).
+
+    Centralizes the five-times-redefined product reader. ``pass_`` selects the
+    ascending or descending pass. Returns float32 arrays; the fill value
+    ``-999`` is propagated as-is (the consumer decides whether to mask it).
+    """
+    import netCDF4
+
+    ds = netCDF4.Dataset(path)
+    try:
+        ds.set_auto_mask(False)
+        suf = "_" + pass_
+        wet = np.asarray(ds.variables["wetness_index" + suf][:], dtype=np.float32)
+        temp = np.asarray(
+            ds.variables["land_skin_temperature" + suf][:], dtype=np.float32)
+        snow = np.asarray(ds.variables["snow_flag" + suf][:], dtype=np.int16)
+    finally:
+        ds.close()
+    return wet, temp, snow

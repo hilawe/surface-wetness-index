@@ -59,15 +59,20 @@ def write_daily_product(out_path, lat, lon, by_pass, meta, date_created=None):
         vlon.long_name = "longitude of grid cell center"
         vlon[:] = lon
 
+        # No valid_range on wetness_index or land_skin_temperature: the algorithm
+        # keeps -99 as a meaningful sentinel (rejected retrieval, retrieval
+        # attempted but unusable) and writing a valid_range that excludes -99
+        # caused standard NetCDF readers to auto-mask real rejected retrievals
+        # as missing, biasing downstream validation masks. The fill_value
+        # (-999.0) still marks the truly missing cells. The comment documents
+        # the data range and the sentinel value.
         specs = {
             "wetness_index": dict(dtype="f4", units="1", fill=FLOAT_FILL,
                                   long_name="Basist surface wetness index",
-                                  valid_range=np.array([0.0, 100.0], "f4"),
-                                  comment="0 dry to ~100; -99 = retrieval unusable"),
+                                  comment="0 dry to ~100; -99 = retrieval attempted but unusable; fill value -999 = no observation"),
             "land_skin_temperature": dict(dtype="f4", units="K", fill=FLOAT_FILL,
                                           long_name="land skin (shelter-height) temperature",
-                                          valid_range=np.array([150.0, 350.0], "f4"),
-                                          comment="-99 = undefined"),
+                                          comment="-99 = undefined retrieval; fill value -999 = no observation; nominal range 150-350 K"),
             "snow_flag": dict(dtype="i2", units="1", fill=INT_FILL,
                               long_name="snow/ice flag and scattering magnitude",
                               comment="0 none; -1 ice/glacial; -99 bad; -100 gap; "

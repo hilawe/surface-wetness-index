@@ -158,3 +158,26 @@ def apply(tb_cube, coeffs):
         out[..., CH85V] = bv[0] * v91 + bv[1]
         out[..., CH85H] = bh[0] * h91 + bh[1]
     return out.astype(np.float32)
+
+
+
+def make_engine(coeffs):
+    """Return an engine that applies the 85-to-91 adjustment then evaluates.
+
+    The returned object has an `evaluate_kelvin(tb)` method matching the
+    interface that `io.evaluate_file` expects. With `coeffs=None` it is a
+    passthrough to `core_numpy.evaluate_kelvin`. Centralizes a small wrapper
+    that used to be copy-pasted across four product-writer scripts.
+    """
+    from . import core_numpy
+
+    class _CalibEngine:
+        def __init__(self, coeffs):
+            self.coeffs = coeffs
+
+        def evaluate_kelvin(self, tb):
+            if self.coeffs is not None:
+                tb = apply(tb, self.coeffs)
+            return core_numpy.evaluate_kelvin(tb)
+
+    return _CalibEngine(coeffs)

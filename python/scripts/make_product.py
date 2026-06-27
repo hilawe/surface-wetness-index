@@ -12,24 +12,9 @@ import sys
 
 import numpy as np
 
-from swi import io_csu_grid as io, product, core_numpy
+from swi import io_csu_grid as io, product, core_numpy, calib_8591
 
 
-class _CalibEngine:
-    """Engine wrapper that applies an 85-to-91 adjustment before evaluating.
-
-    Exposes evaluate_kelvin(tb) so it is a drop-in for io.evaluate_file's engine
-    argument. With coeffs=None it is a passthrough to core_numpy.
-    """
-
-    def __init__(self, coeffs):
-        self.coeffs = coeffs
-
-    def evaluate_kelvin(self, tb):
-        if self.coeffs is not None:
-            from swi import calib_8591 as cal
-            tb = cal.apply(tb, self.coeffs)
-        return core_numpy.evaluate_kelvin(tb)
 
 
 def main():
@@ -53,7 +38,7 @@ def main():
     sensor = ""
     for p in ("asc", "dsc"):
         with np.errstate(divide="ignore", invalid="ignore"):
-            r = io.evaluate_file(src, pass_=p, engine=_CalibEngine(coeffs))
+            r = io.evaluate_file(src, pass_=p, engine=calib_8591.make_engine(coeffs))
         sensor = r["sensor"]
         if r.get("empty_channels"):
             print(f"WARNING: {p} pass missing channel(s) {r['empty_channels']}; "
