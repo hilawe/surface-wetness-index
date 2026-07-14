@@ -134,7 +134,4 @@ The CSU Brightness Temperature FCDR used as input is documented in:
 
 ## License
 
-This work was prepared by a U.S. Government employee as part of official duties
-and is in the public domain in the United States (17 U.S.C. 105). To the extent
-any rights exist, they are dedicated to the public domain under Creative Commons
-Zero 1.0 (see `LICENSE`).
+Public domain under Creative Commons Zero 1.0 (see `LICENSE`).
