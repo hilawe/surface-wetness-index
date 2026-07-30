@@ -13,7 +13,7 @@ import sys
 
 import numpy as np
 
-from swi import validate as val
+from swi import grids, validate as val
 
 
 def load_swamps_fw(path):
@@ -59,7 +59,20 @@ def main():
     slat, slon, fw = load_swamps_fw(swamps)
     fw_on = val.regrid_nearest(slat, slon, fw, plat, plon)
 
-    m = np.isfinite(fw_on) & (wet >= 0) & ~(snowf > 0.5)
+    # Restrict to land. SWAMPS carries fractional water over ocean too, and
+    # without this mask the "over land" statistics below were computed over
+    # ocean and land together, which inflated the whole-field correlation and
+    # the detection contrast against a mostly-water population.
+    land = grids.land_mask(plat, plon)
+    if land.all():
+        # grids.land_mask falls back to all-True when global_land_mask is
+        # missing. Silently accepting that would recreate the ocean-plus-land
+        # comparison this mask exists to prevent, while the output still says
+        # "over land". Fail instead.
+        raise RuntimeError(
+            "land mask is all-True, so no ocean was excluded. Install "
+            "global_land_mask; these statistics are land-only by definition.")
+    m = land & np.isfinite(fw_on) & (wet >= 0) & ~(snowf > 0.5)
     latm = np.broadcast_to(plat[:, None], wet.shape)[m]
     W, F = wet[m], fw_on[m]
     dc = val.detection_contrast(W, F, thr=0.0)

@@ -59,3 +59,45 @@ def test_kelvin_roundtrip_matches_packed():
         b = core_numpy.evaluate_packed(kelvin_to_packed(tb))
     np.testing.assert_array_equal(a.snow, b.snow)
     assert _float_equal(a.wet, b.wet).all()
+
+
+def test_branch_trace_does_not_change_results():
+    """The coverage instrumentation must be observational only.
+
+    If tracing altered any mask the port would no longer be bit-exact to the C
+    oracle, so this pins that an instrumented run equals an uninstrumented one.
+    """
+    import numpy as np
+    from swi import core_numpy
+    from swi.channels import N_CHANNELS
+
+    rng = np.random.RandomState(4)
+    block = rng.randint(0, 256, size=(20000, N_CHANNELS)).astype(np.int64)
+    plain = core_numpy.evaluate_packed(block)
+    trace = {}
+    traced = core_numpy.evaluate_packed(block, trace=trace)
+    for a, b in zip(plain, traced):
+        assert np.array_equal(np.nan_to_num(a, nan=-12345.0),
+                              np.nan_to_num(b, nan=-12345.0))
+    assert trace and max(trace.values()) > 0
+
+
+def test_proven_dead_branches_are_never_reached():
+    """The four conditions proven unreachable must stay unreachable.
+
+    They are dead in the recovered 2004 source by their own path constraints, so
+    the port reproducing them faithfully means they never fire. If a future edit
+    made one reachable, the port would have diverged from the original algorithm.
+    """
+    import numpy as np
+    from swi import core_numpy
+    from swi.channels import N_CHANNELS
+    from scripts.branch_coverage import PROVEN_UNREACHABLE
+
+    rng = np.random.RandomState(99)
+    trace = {}
+    for _ in range(4):
+        block = rng.randint(0, 256, size=(250000, N_CHANNELS)).astype(np.int64)
+        core_numpy.evaluate_packed(block, trace=trace)
+    for name in PROVEN_UNREACHABLE:
+        assert trace.get(name, 0) == 0, f"{name} was proven dead but fired"

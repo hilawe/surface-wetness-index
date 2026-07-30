@@ -98,3 +98,27 @@ def bin_swath_to_grid(grid, lat, lon, tb, fill=np.nan):
         out[nonempty, c] = sums[nonempty] / counts[nonempty]
 
     return out.reshape(grid.nlat, grid.nlon, N_CHANNELS)
+
+
+def land_mask(lat, lon):
+    """Boolean (nlat, nlon) land mask for a grid given 1-D lat and lon.
+
+    Accepts lon in 0..360 or -180..180. Uses global_land_mask if available and
+    falls back to all-True (every cell treated as land) if it is not installed,
+    so callers that require a real mask should check for an all-True result.
+
+    This lives with the grid utilities rather than beside a reference-dataset
+    reader because it depends on nothing but the grid axes, which keeps the
+    validation drivers that need a land mask free of unrelated imports.
+    """
+    import numpy as _np
+
+    lat = _np.asarray(lat, dtype=_np.float64)
+    lon = _np.asarray(lon, dtype=_np.float64)
+    lon180 = _np.where(lon > 180.0, lon - 360.0, lon)
+    lon2d, lat2d = _np.meshgrid(lon180, lat)
+    try:
+        from global_land_mask import globe
+        return globe.is_land(lat2d, lon2d)
+    except Exception:
+        return _np.ones((lat.size, lon.size), dtype=bool)

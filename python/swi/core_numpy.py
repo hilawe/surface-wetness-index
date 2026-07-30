@@ -48,8 +48,22 @@ def _wet_surf(P1, P5, P6, F31, F64):
     return Pf, wet.astype(_f32)
 
 
-def evaluate_packed(chan):
-    """Evaluate native packed integer channels (Kelvin - 70), shape (..., 7)."""
+def evaluate_packed(chan, trace=None):
+    """Evaluate native packed integer channels (Kelvin - 70), shape (..., 7).
+
+    Pass `trace` as a dict to record how many input cells satisfy each decision
+    condition. The tree's tests are named c1 through c42 here, with `cNNelse` for
+    an explicit else limb, and counts accumulate across calls. This is purely
+    observational: it counts masks the evaluation already computes and changes
+    none of them, so an instrumented run returns bit-identical output to an
+    uninstrumented one, which the regression test against the C oracle enforces.
+    `scripts/branch_coverage.py` uses it to report which conditions are reachable.
+    """
+    def _tr(name, mask):
+        if trace is not None:
+            trace[name] = trace.get(name, 0) + int(np.count_nonzero(mask))
+        return mask
+
     chan = np.asarray(chan, dtype=np.int64)
     if chan.shape[-1] != N_CHANNELS:
         raise ValueError(f"last axis must be {N_CHANNELS} channels, got {chan.shape}")
@@ -133,9 +147,9 @@ def evaluate_packed(chan):
 
     # TEST 5 / 6
     live = ~done
-    c5 = live & (F31 >= 1) & (PD85 >= 15) & (P4 > P3)
+    c5 = _tr("c5", live & (F31 >= 1) & (PD85 >= 15) & (P4 > P3))
     pd19_div = (PD19.astype(_f32) / _f32(10))            # float32 division (Test 6)
-    c6 = c5 & (((pd19_div <= F31.astype(_f32)) | (PD19 < 25)) & (P6 > P1))
+    c6 = _tr("c6", c5 & (((pd19_div <= F31.astype(_f32)) | (PD19 < 25)) & (P6 > P1)))
     # cond6 cells take the gen_WET_surf value; the rest of c5 get WET = -99.
     wet[c6] = WETsurf[c6]
     wet[c5 & ~c6] = _f32(-99.0)
@@ -146,12 +160,12 @@ def evaluate_packed(chan):
 
     # TEST 7 block (CONTAM accumulation + TEST 10)
     live = ~done
-    c7 = live & (PD37 <= 7)
-    c8 = c7 & (F46 > 3) & (P1 >= 257) & (PD85 <= 7)
+    c7 = _tr("c7", live & (PD37 <= 7))
+    c8 = _tr("c8", c7 & (F46 > 3) & (P1 >= 257) & (PD85 <= 7))
     contam[c8] = F46[c8]
-    c9 = c7 & ~c8 & (F31 > 0) & (F43 > 0) & (F64 <= 0)
+    c9 = _tr("c9", c7 & ~c8 & (F31 > 0) & (F43 > 0) & (F64 <= 0))
     contam[c9] = F43[c9]
-    c10 = c7 & ((contam > 25) | ((contam > 0) & (P1 < 261)))
+    c10 = _tr("c10", c7 & ((contam > 25) | ((contam > 0) & (P1 < 261))))
     fin(c10, rt=_f32(-99.0), wt=_f32(0.0), sn=0, rc=1)
 
     # SNOW FILTER
@@ -160,83 +174,83 @@ def evaluate_packed(chan):
     scat = np.where(F46 > scat, F46, scat)               # TEST 12
     live = ~done
     snow[live] = 0
-    c13 = live & (scat >= 1) & (P3 < 257)                # TEST 13
+    c13 = _tr("c13", live & (scat >= 1) & (P3 < 257))                # TEST 13
     snow[c13] = scat[c13]
     # TEST 14
-    c14 = c13 & (PD85.astype(np.float64) >= 2.5 * snow.astype(np.float64))
+    c14 = _tr("c14", c13 & (PD85.astype(np.float64) >= 2.5 * snow.astype(np.float64)))
     snow[c14] = 0
     # TEST 15
-    c15 = c13 & ((P3 >= 258)
+    c15 = _tr("c15", c13 & ((P3 >= 258)
                  | (P3.astype(np.float64) >= 165.0 + 0.49 * P6.astype(np.float64))
-                 | ((P3 >= 254) & (scat <= 2) & (PD85 >= 3)))
+                 | ((P3 >= 254) & (scat <= 2) & (PD85 >= 3))))
     snow[c15] = 0
     # TEST 16 / 17
-    c16 = c13 & (PD19 >= 18) & (F14 <= 10) & (F46 <= 5) & (F31 <= 0) & (P3 > 235)
-    c17 = c16 & (P3 > 235) & (PD37 < 30)
+    c16 = _tr("c16", c13 & (PD19 >= 18) & (F14 <= 10) & (F46 <= 5) & (F31 <= 0) & (P3 > 235))
+    c17 = _tr("c17", c16 & (P3 > 235) & (PD37 < 30))
     snow[c17] = 0
-    c16else = c16 & ~c17
+    c16else = _tr("c16else", c16 & ~c17)
     fin(c16else, rt=_f32(-99.0), wt=_f32(-99.0), sn=0, rc=1)
     # TEST 18
     live = ~done
-    c18 = live & c13 & (snow != 0) & (PD19 >= 12) & (scat <= 2) & (F14 <= 2)
+    c18 = _tr("c18", live & c13 & (snow != 0) & (PD19 >= 12) & (scat <= 2) & (F14 <= 2))
     fin(c18, rt=_f32(-99.0), wt=_f32(-99.0), sn=-99, rc=1)
     # TEST 19  (note C precedence: F34>17 || (P6>P4 && P6>245))
     live = ~done
-    c19 = (live & c13
+    c19 = _tr("c19", (live & c13
            & ((F34 > 17) | ((P6 > P4) & (P6 > 245)))
-           & ((F31 > 10) | (PD85 > 20)))
+           & ((F31 > 10) | (PD85 > 20))))
     fin(c19, rt=_f32(-99.0), wt=_f32(-99.0), sn=-99, rc=1)
 
     # TEST 20: remove remaining snow
     live = ~done
-    c20 = live & (snow > 0)
+    c20 = _tr("c20", live & (snow > 0))
     fin(c20, rt=_f32(-99.0), wt=_f32(0.0), rc=1)
 
     # TEST 21 / 22 / 23: rain or snow over a wet surface
     live = ~done
-    c21 = live & (contam > 0) & (F36 > 0) & (PD37 < 7)
-    c22 = c21 & (F31 >= -3) & (PD85 <= 10)
+    c21 = _tr("c21", live & (contam > 0) & (F36 > 0) & (PD37 < 7))
+    c22 = _tr("c22", c21 & (F31 >= -3) & (PD85 <= 10))
     wets[c22] = RAIN_WET
     rtemp[c22] = (1.0714 * P3[c22] + 0.2183 * F36[c22]).astype(_f32)
-    c23 = c22 & (rtemp < _f32(271.0))
+    c23 = _tr("c23", c22 & (rtemp < _f32(271.0)))
     fin(c23, rt=_f32(-99.0), sn=F36, wt=_f32(0.0), rc=1)
-    c22else = c22 & ~c23
+    c22else = _tr("c22else", c22 & ~c23)
     nop[c22else] = 0
     fin(c22else, wt=_f32(-99.0), rc=1)            # RTEMP keeps the regression value
-    c21else = c21 & ~c22
+    c21else = _tr("c21else", c21 & ~c22)
     fin(c21else, rt=_f32(-99.0), sn=0, wt=_f32(-99.0), rc=1)
 
     # TEST 24: rain
     live = ~done
-    c24 = live & (((F46 > 5) & (P3 >= 257) & (PD85 <= 5) & (PD37 < 7))
-                  | ((P3 >= 257) & (F46 > 10) & (PD37 < 7)))
+    c24 = _tr("c24", live & (((F46 > 5) & (P3 >= 257) & (PD85 <= 5) & (PD37 < 7))
+                  | ((P3 >= 257) & (F46 > 10) & (PD37 < 7))))
     fin(c24, rt=_f32(-99.0), wt=_f32(-99.0), sn=-99, rc=1)
 
     # TEST 25 block: a wet surface
     live = ~done
-    c25 = (live
+    c25 = _tr("c25", (live
            & ((F31 > 3) | (F64 * 2 >= PD37) | (F41 * 7 > PD19))
-           & (contam == 0) & (snow == 0) & (F64 > 0))
+           & (contam == 0) & (snow == 0) & (F64 > 0)))
     wet[c25] = WETsurf[c25]                       # gen_WET_surf
     # Snapshot the WET>0 split NOW, before any finalize below mutates wet.
-    c26 = c25 & (wet > 0)                          # TEST 26 (true branch)
-    c26else = c25 & ~(wet > 0)                     # TEST 26 (else: WET <= 0)
+    c26 = _tr("c26", c25 & (wet > 0))                          # TEST 26 (true branch)
+    c26else = _tr("c26else", c25 & ~(wet > 0))                     # TEST 26 (else: WET <= 0)
     # TEST 27
-    c27 = c26 & (PD19 > F64 * 4) & (F64 >= 5)
+    c27 = _tr("c27", c26 & (PD19 > F64 * 4) & (F64 >= 5))
     fin(c27, rt=_f32(-99.0), wt=_f32(-99.0), sn=-99, rc=1)
     # TEST 28 / 29
     live = ~done
-    c28 = c26 & live & (F34 > 0) & (F46 > 0)
-    c29 = c28 & ((PD19 - F46) >= 8)
+    c28 = _tr("c28", c26 & live & (F34 > 0) & (F46 > 0))
+    c29 = _tr("c29", c28 & ((PD19 - F46) >= 8))
     fin(c29, rt=_f32(-99.0), sn=0, wt=_f32(0.0), rc=1)
-    c28else = c28 & ~c29
+    c28else = _tr("c28else", c28 & ~c29)
     rtemp[c28else] = (0.3204 * PD19[c28else] + 1.0558 * P3[c28else]
                       - 0.5008 * F46[c28else]).astype(_f32)
     # else branch of "if(F34>0 && F46>0)": RTEMP = P
-    c26_noc28 = c26 & ~done & ~c28
+    c26_noc28 = _tr("c26_noc28", c26 & ~done & ~c28)
     rtemp[c26_noc28] = Pglob[c26_noc28]
     # after the inner if/else, for all still-live c26 cells: nop=0, wets=WET_SURF
-    c26_live = c26 & ~done
+    c26_live = _tr("c26_live", c26 & ~done)
     nop[c26_live] = 0
     wets[c26_live] = WET_SURF
     # else branch of TEST 26 (WET <= 0)
@@ -246,17 +260,17 @@ def evaluate_packed(chan):
 
     # TEST 30: glacial
     live = ~done
-    c30 = live & (wet != 0.0) & (rtemp <= _f32(258.0)) & (P6 < 256)
+    c30 = _tr("c30", live & (wet != 0.0) & (rtemp <= _f32(258.0)) & (P6 < 256))
     fin(c30, sn=-1, wt=_f32(-99.0), rt=_f32(-99.0), rc=1)
 
     # TEST 31: quartz (no return)
     live = ~done
-    c31 = live & (P1 >= P3) & (PD19 > 25) & (P3 + 2 <= P4) & (P4 > P6)
+    c31 = _tr("c31", live & (P1 >= P3) & (PD19 > 25) & (P3 + 2 <= P4) & (P4 > P6))
     nop[c31] = 0
 
     # TEST 32: limestone
     live = ~done
-    c32 = live & (wets == 0) & (P4 < P6) & (PD37 > 6)
+    c32 = _tr("c32", live & (wets == 0) & (P4 < P6) & (PD37 > 6))
     nop[c32] = 0
     lime[c32] = 1
     rtemp[c32] = (0.31091196 * PD19[c32] + 0.56659491 * P4[c32]
@@ -265,32 +279,32 @@ def evaluate_packed(chan):
 
     # TEST 33
     live = ~done
-    c33 = live & (((PD19 > 20) & (PD19 + 2 < PD37))
-                  | ((PD19 > 10) & (PD19 + 4 < PD37) & (PD85 > PD37)))
+    c33 = _tr("c33", live & (((PD19 > 20) & (PD19 + 2 < PD37))
+                  | ((PD19 > 10) & (PD19 + 4 < PD37) & (PD85 > PD37))))
     fin(c33, rt=_f32(-99.0), wt=_f32(-99.0), sn=0, rc=1)
 
     # TEST 34
     live = ~done
-    c34 = live & (P1 <= 256) & (F36 <= -4) & (wet <= 0.0) & (PD85 > 5)
+    c34 = _tr("c34", live & (P1 <= 256) & (F36 <= -4) & (wet <= 0.0) & (PD85 > 5))
     fin(c34, sn=-99, wt=_f32(-99.0), rt=_f32(-99.0), rc=1)
 
     # TEST 35 / 36
     live = ~done
-    c35 = live & (wet <= 0.0) & (PD19 > 8) & ((PD85 > PD37) | (PD85 > PD19))
-    c36 = c35 & ((np.abs(PD19) + np.abs(PD37) + np.abs(PD85)) >= 5)
+    c35 = _tr("c35", live & (wet <= 0.0) & (PD19 > 8) & ((PD85 > PD37) | (PD85 > PD19)))
+    c36 = _tr("c36", c35 & ((np.abs(PD19) + np.abs(PD37) + np.abs(PD85)) >= 5))
     fin(c36, rt=_f32(-99.0), wt=_f32(-99.0), sn=-99, rc=-1)
 
     # TEST 37
     live = ~done
-    c37 = live & (((PD37 > 39) & (wet > 0))
+    c37 = _tr("c37", live & (((PD37 > 39) & (wet > 0))
                   | ((PD85 > 20) & (wet == 0) & (PD37 < 30))
                   | ((wets == WET_SURF) & (F36 > 0))
-                  | ((PD19 > 10) & (wet == 0) & (F64 > 3) & (lime == 0)))
+                  | ((PD19 > 10) & (wet == 0) & (F64 > 3) & (lime == 0))))
     fin(c37, rt=_f32(-99.0), wt=_f32(-99.0), sn=-99, rc=1)
 
     # TEST 38 (no return)
     live = ~done
-    c38 = live & (P3 > P1) & (P3 > P6)
+    c38 = _tr("c38", live & (P3 > P1) & (P3 > P6))
     rtemp[c38] = (1.0730 * P3[c38] + 0.2260 * F36[c38]).astype(_f32)
     wet[c38] = _f32(-99.0)
     snow[c38] = 0
@@ -306,10 +320,10 @@ def evaluate_packed(chan):
 
     # TEST 41 / 42: vegetation is last
     live = ~done
-    c41 = live & (nop == 1)
-    c42 = c41 & (F31 > 0) & (PD37 > 10)
+    c41 = _tr("c41", live & (nop == 1))
+    c42 = _tr("c42", c41 & (F31 > 0) & (PD37 > 10))
     fin(c42, rt=_f32(-99.0), rc=1)
-    c42else = c41 & ~c42
+    c42else = _tr("c42else", c41 & ~c42)
     rtemp[c42else] = (1.0698 * P3[c42else]).astype(_f32)
     # remaining live cells return 0 (ret already 0) with current RTEMP/WET/SNOW.
 

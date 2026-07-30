@@ -1,6 +1,6 @@
 """Write daily Surface Wetness Index products as CF-compliant NetCDF.
 
-Emits the three retrievals (wetness index, land skin temperature, snow flag) for
+Emits the three retrievals (wetness index, retrieval temperature, snow flag) for
 ascending and descending passes on the input grid, with metadata following CF and
 ACDD conventions. Attribution credits the Basist algorithm and NOAA NCEI; no AI
 tooling appears in any author or creator field.
@@ -59,7 +59,7 @@ def write_daily_product(out_path, lat, lon, by_pass, meta, date_created=None):
         vlon.long_name = "longitude of grid cell center"
         vlon[:] = lon
 
-        # No valid_range on wetness_index or land_skin_temperature: the algorithm
+        # No valid_range on wetness_index or retrieval_temperature: the algorithm
         # keeps -99 as a meaningful sentinel (rejected retrieval, retrieval
         # attempted but unusable) and writing a valid_range that excludes -99
         # caused standard NetCDF readers to auto-mask real rejected retrievals
@@ -70,9 +70,9 @@ def write_daily_product(out_path, lat, lon, by_pass, meta, date_created=None):
             "wetness_index": dict(dtype="f4", units="1", fill=FLOAT_FILL,
                                   long_name="Basist surface wetness index",
                                   comment="0 dry to ~100; -99 = retrieval attempted but unusable; fill value -999 = no observation"),
-            "land_skin_temperature": dict(dtype="f4", units="K", fill=FLOAT_FILL,
-                                          long_name="land skin (shelter-height) temperature",
-                                          comment="-99 = undefined retrieval; fill value -999 = no observation; nominal range 150-350 K"),
+            "retrieval_temperature": dict(dtype="f4", units="K", fill=FLOAT_FILL,
+                                          long_name="algorithm retrieval temperature (RTEMP)",
+                                          comment="target is near-surface (shelter-height) air temperature per the operational documentation, not validated as a product; -99 = undefined retrieval; fill value -999 = no observation; nominal range 150-350 K"),
             "snow_flag": dict(dtype="i2", units="1", fill=INT_FILL,
                               long_name="snow/ice flag and scattering magnitude",
                               comment="0 none; -1 ice/glacial; -99 bad; -100 gap; "
@@ -81,7 +81,7 @@ def write_daily_product(out_path, lat, lon, by_pass, meta, date_created=None):
                                    long_name="decision-tree return code",
                                    comment="0 good; 1 water-condition; -1 rejected"),
         }
-        src = {"wetness_index": "wet", "land_skin_temperature": "temp",
+        src = {"wetness_index": "wet", "retrieval_temperature": "temp",
                "snow_flag": "snow", "retrieval_code": "ret"}
 
         for pass_ in ("asc", "dsc"):
@@ -106,7 +106,7 @@ def write_daily_product(out_path, lat, lon, by_pass, meta, date_created=None):
 
         ds.Conventions = "CF-1.8 ACDD-1.3"
         ds.title = "Surface Wetness Index (Basist) daily product"
-        ds.summary = ("Daily surface wetness index, land skin temperature, and "
+        ds.summary = ("Daily surface wetness index, algorithm retrieval temperature, and "
                       "snow flag from the Basist signal-recognition decision tree "
                       "applied to CSU intercalibrated SSM/I(S) brightness "
                       "temperatures.")
@@ -156,8 +156,16 @@ def write_composite_product(out_path, lat, lon, by_pass, meta, period="monthly",
         "wetness_index_mean": dict(dtype="f4", units="1", fill=FLOAT_FILL,
                                    long_name=f"{pw} mean Basist surface wetness index",
                                    valid_range=np.array([0.0, 100.0], "f4")),
-        "land_skin_temperature_mean": dict(dtype="f4", units="K", fill=FLOAT_FILL,
-                                           long_name=f"{pw} mean land skin temperature",
+        # RTEMP is the tree's temperature output. The operational documentation
+        # calls it "temperature at shelter height", so its target is near-surface
+        # air temperature rather than the radiating skin, and it is not a
+        # calibrated estimate of either (see the paper's section 3.2). The neutral
+        # name avoids asserting a target the output has not been validated against.
+        "retrieval_temperature_mean": dict(dtype="f4", units="K", fill=FLOAT_FILL,
+                                           long_name=f"{pw} mean algorithm retrieval "
+                                                     "temperature (RTEMP), target is "
+                                                     "near-surface air temperature, "
+                                                     "not validated as a product",
                                            valid_range=np.array([150.0, 350.0], "f4")),
         "snow_frequency": dict(dtype="f4", units="1", fill=FLOAT_FILL,
                                long_name="fraction of observed days flagged snow",
@@ -166,6 +174,15 @@ def write_composite_product(out_path, lat, lon, by_pass, meta, period="monthly",
                                long_name="number of observed days"),
         "n_wet": dict(dtype="i2", units="1", fill=INT_FILL,
                       long_name="number of days with a valid wetness retrieval"),
+        # Thresholding the monthly mean at zero makes a cell wet if any single day
+        # fired, so the operating point moves with how many days were composited.
+        # These two fields let a threshold be set on detection frequency instead.
+        "n_wet_positive": dict(dtype="i2", units="1", fill=INT_FILL,
+                               long_name="number of days the index fired (WET > 0)"),
+        "wet_frequency": dict(dtype="f4", units="1", fill=FLOAT_FILL,
+                              long_name="fraction of valid-retrieval days the index "
+                                        "fired, a sampling-stable detection measure",
+                              valid_range=np.array([0.0, 1.0], "f4")),
     }
 
     ds = nc.Dataset(out_path, "w", format="NETCDF4")

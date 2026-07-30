@@ -31,7 +31,7 @@ def test_write_and_read_back(tmp_path):
     ds = nc.Dataset(out)
     try:
         for p in ("asc", "dsc"):
-            for v in ("wetness_index", "land_skin_temperature", "snow_flag",
+            for v in ("wetness_index", "retrieval_temperature", "snow_flag",
                       "retrieval_code"):
                 assert f"{v}_{p}" in ds.variables
         # coordinates roundtrip
@@ -52,5 +52,38 @@ def test_write_and_read_back(tmp_path):
         for tok in forbidden:
             assert tok not in blob
         assert "not yet validated" in ds.comment.lower()
+    finally:
+        ds.close()
+
+
+def test_composite_writer_persists_wet_frequency_fields(tmp_path):
+    """The accumulator computes wet-day counts; the writer must actually store them.
+
+    Regression guard: n_wet_positive and wet_frequency were added to
+    monthly.Accumulator but omitted from the composite writer, so the
+    sampling-stable detection measure never reached the product.
+    """
+    import netCDF4 as nc
+    from swi import monthly, product as prod
+
+    shape = (2, 3)
+    acc = monthly.Accumulator(shape)
+    for wet in (np.full(shape, 5.0), np.zeros(shape)):
+        acc.add({"wet": wet, "temp": np.full(shape, 280.0),
+                 "snow": np.zeros(shape, np.int16)})
+    fields = acc.result()
+    out = tmp_path / "c.nc"
+    prod.write_composite_product(
+        str(out), np.array([0.0, 1.0]), np.array([0.0, 1.0, 2.0]),
+        {"asc": fields, "dsc": fields},
+        {"sensor": "F13", "label": "199807", "n_days": 2}, period="monthly")
+    ds = nc.Dataset(str(out))
+    try:
+        for pass_ in ("asc", "dsc"):
+            assert f"n_wet_positive_{pass_}" in ds.variables
+            assert f"wet_frequency_{pass_}" in ds.variables
+            assert f"retrieval_temperature_mean_{pass_}" in ds.variables
+            # one of two days fired, so the frequency must be 0.5, not 1.0
+            assert abs(float(ds.variables[f"wet_frequency_{pass_}"][0, 0]) - 0.5) < 1e-6
     finally:
         ds.close()

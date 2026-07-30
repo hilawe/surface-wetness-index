@@ -3,10 +3,12 @@
     python -m scripts.validate_era5_temporal OUT.png [--min-n N] PRODUCT_YYYYMM.nc ...
 
 For each monthly product, loads ERA5-Land swvl1, regrids to our grid, masks to
-unfrozen land, and stacks the months. Then computes the per-cell temporal anomaly
-correlation (departures from each cell's own temporal mean). This asks whether the
-wetness index follows the wetness cycle at each location, which is a stronger test
-than a single-month spatial comparison.
+unfrozen land, and stacks the months. Then computes the per-cell temporal
+correlation of the two monthly series. Note that this is NOT an anomaly correlation:
+subtracting each cell's own temporal mean leaves a correlation unchanged, so the
+seasonal cycle is retained in both series and this measures mainly whether the index
+tracks the annual wet and dry march. Removing a calendar-month climatology would be
+needed to test skill at interannual departures.
 
 --min-n sets the minimum valid months a cell needs to be evaluated (default
 max(6, n - 3), tuned for a single year; for a multi-year run set it to roughly

@@ -8,7 +8,7 @@ times). Only valid retrievals contribute: WET and RTEMP sentinels (-99) and gaps
 
 Monthly fields per pass:
 - wetness_index_mean      : mean of daily WET where WET >= 0
-- land_skin_temperature_mean : mean of daily RTEMP where RTEMP > -90
+- retrieval_temperature_mean : mean of daily RTEMP where RTEMP > -90
 - snow_frequency          : fraction of observed days flagged snow (SNOW > 0)
 - n_observations          : number of observed days (cell seen, not a gap)
 - n_wet                   : number of days with a valid wetness retrieval
@@ -28,6 +28,12 @@ class Accumulator:
         self.temp_cnt = np.zeros(shape, np.int32)
         self.snow_cnt = np.zeros(shape, np.int32)
         self.obs_cnt = np.zeros(shape, np.int32)
+        # Days on which the index actually fired, as distinct from days on which a
+        # valid retrieval existed. Thresholding the monthly mean at zero makes a
+        # cell "wet" if any single day fired, so the operating point moves with how
+        # many days were composited. Carrying the positive-day count lets a
+        # threshold be set on detection frequency instead.
+        self.wet_pos_cnt = np.zeros(shape, np.int32)
 
     def add(self, res):
         """Add one daily pass result (dict with 'wet','temp','snow')."""
@@ -35,6 +41,7 @@ class Accumulator:
         wv = np.isfinite(wet) & (wet >= 0.0)
         self.wet_sum[wv] += wet[wv]
         self.wet_cnt += wv
+        self.wet_pos_cnt += wv & (wet > 0.0)
         tv = np.isfinite(temp) & (temp > -90.0)
         self.temp_sum[tv] += temp[tv]
         self.temp_cnt += tv
@@ -50,12 +57,17 @@ class Accumulator:
                              np.nan).astype(np.float32)
         snow_freq = np.where(self.obs_cnt > 0, self.snow_cnt / np.maximum(self.obs_cnt, 1),
                              np.nan).astype(np.float32)
+        wet_freq = np.where(self.wet_cnt > 0,
+                            self.wet_pos_cnt / np.maximum(self.wet_cnt, 1),
+                            np.nan).astype(np.float32)
         return {
             "wetness_index_mean": wet_mean,
-            "land_skin_temperature_mean": temp_mean,
+            "retrieval_temperature_mean": temp_mean,
             "snow_frequency": snow_freq,
             "n_observations": self.obs_cnt.astype(np.int16),
             "n_wet": self.wet_cnt.astype(np.int16),
+            "n_wet_positive": self.wet_pos_cnt.astype(np.int16),
+            "wet_frequency": wet_freq,
         }
 
 
@@ -154,7 +166,7 @@ def read_wet_product(path, pass_="dsc"):
         suf = "_" + pass_
         wet = np.asarray(ds.variables["wetness_index" + suf][:], dtype=np.float32)
         temp = np.asarray(
-            ds.variables["land_skin_temperature" + suf][:], dtype=np.float32)
+            ds.variables["retrieval_temperature" + suf][:], dtype=np.float32)
         snow = np.asarray(ds.variables["snow_flag" + suf][:], dtype=np.int16)
     finally:
         ds.close()

@@ -138,3 +138,28 @@ def test_write_weekly_period_labels(tmp_path):
         assert ds.creator_name == "Hilawe Semunegus"
     finally:
         ds.close()
+
+
+def test_accumulator_tracks_positive_days_not_just_valid_days():
+    """Monthly WET>0 fires if ANY day fired, so the operating point moves with
+    how many days were composited. The positive-day count makes a
+    sampling-stable threshold (detection frequency) possible.
+    """
+    import numpy as np
+    from swi.monthly import Accumulator
+
+    shape = (1, 2)
+    acc = Accumulator(shape)
+    # cell 0 fires on exactly one of four days; cell 1 fires on all four.
+    for day, (a, b) in enumerate([(5.0, 5.0), (0.0, 5.0), (0.0, 5.0), (0.0, 5.0)]):
+        acc.add({"wet": np.array([[a, b]]),
+                 "temp": np.full(shape, 280.0),
+                 "snow": np.zeros(shape, np.int16)})
+    r = acc.result()
+    # both cells have a positive monthly mean, so WET>0 cannot separate them
+    assert r["wetness_index_mean"][0, 0] > 0 and r["wetness_index_mean"][0, 1] > 0
+    # the frequency does separate them
+    assert r["n_wet_positive"][0, 0] == 1
+    assert r["n_wet_positive"][0, 1] == 4
+    assert abs(float(r["wet_frequency"][0, 0]) - 0.25) < 1e-6
+    assert abs(float(r["wet_frequency"][0, 1]) - 1.00) < 1e-6
