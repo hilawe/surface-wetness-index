@@ -51,7 +51,7 @@ def make_map(r, out):
     fig, axes = plt.subplots(3, 1, figsize=(11, 12))
     panels = [
         (view(wet), "Surface Wetness Index (WET)", "YlGnBu", 0, 100, "index 0-100"),
-        (view(temp), "Land Skin Temperature (RTEMP)", "turbo", 230, 320, "K"),
+        (view(temp), "Near-surface temperature (RTEMP)", "turbo", 230, 320, "K"),
         (view(snow), "Snow scattering (SNOW > 0)", "BuPu", 0, 40, "scattering"),
     ]
     for ax, (img, title, cmap, vmin, vmax, cb) in zip(axes, panels):

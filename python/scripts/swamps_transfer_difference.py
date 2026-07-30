@@ -42,8 +42,11 @@ def main():
         print("one of the inputs carries no saved bootstrap draws; rerun "
               "swamps_transfer_test with the draw-saving version first")
         return 1
-    n = min(da.size, db.size)
-    d = da[:n] - db[:n]
+    # The two source bootstraps may share a seed, which correlates draws at
+    # matching indices, so index-paired subtraction is not valid. The months
+    # are independent samples, so every cross pair is a valid draw of the
+    # difference; use the full outer set.
+    d = (da[:, None] - db[None, :]).ravel()
     good = d[np.isfinite(d)]
     lo, hi = np.percentile(good, [2.5, 97.5])
 
@@ -56,7 +59,8 @@ def main():
         "point_difference_a_minus_b": (a["spearman_area_weighted"]
                                        - b["spearman_area_weighted"]),
         "difference_ci_95": {"lo": float(lo), "hi": float(hi),
-                             "n_pairs": int(good.size)},
+                             "n_pairs": int(good.size),
+                             "pairing": "all cross pairs of the two draw sets"},
         "frac_gt_0": float((good > 0).mean()),
         "spans_zero": bool(lo < 0.0 < hi),
     }

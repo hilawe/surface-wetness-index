@@ -255,12 +255,11 @@ def weighted_rank(x, w):
     x = np.asarray(x, np.float64); w = np.asarray(w, np.float64)
     order = np.argsort(x, kind="mergesort")
     xs, ws = x[order], w[order]
-    cw = np.cumsum(ws) - ws / 2.0
     change = np.r_[True, xs[1:] != xs[:-1]]
     gid = np.cumsum(change) - 1
-    sums = np.bincount(gid, weights=cw)
-    cnts = np.bincount(gid)
-    r = (sums / cnts)[gid]
+    gw = np.bincount(gid, weights=ws)              # total weight per tied group
+    below = np.concatenate([[0.0], np.cumsum(gw)[:-1]])
+    r = (below + gw / 2.0)[gid]                    # weight below + half own group
     out = np.empty_like(r)
     out[order] = r
     return out

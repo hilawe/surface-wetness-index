@@ -180,7 +180,10 @@ def main():
         print(f"  snow flag changes            : {100*np.mean(p_dsnow):.2f}% of cells")
 
     # 3. Systematic offsets, including the 1 K case the calibration memo flags.
-    res["bias_perturbation"] = {}
+    res["bias_perturbation"] = {
+        "denominator": ("firing fractions are conditional on baseline-valid "
+                        "cells that remain valid under the offset; the "
+                        "invalidated fraction is recorded per offset")}
     print("\nUniform offset applied to both 85 GHz channels:")
     print(f"  {'offset':>8} {'firing frac':>12} {'shift':>9} {'flips':>9}")
     print(f"  {'0.0 K':>8} {float(b_fire[valid].mean()):>12.4f} {'-':>9} {'-':>9}")
@@ -190,10 +193,12 @@ def main():
         v = valid & (w > WET_SENTINELS)
         f = float((w > 0.0)[v].mean())
         fl = float(((w > 0.0) != b_fire)[v].mean())
+        inv = float((valid & ~(w > WET_SENTINELS)).sum() / valid.sum())
         res["bias_perturbation"][f"{off:+.1f}K"] = {
             "firing_fraction": f,
             "firing_fraction_shift": f - float(b_fire[v].mean()),
             "classification_flip_frac": fl,
+            "invalidated_frac": inv,
         }
         print(f"  {off:>+7.1f}K {f:>12.4f} {f - float(b_fire[v].mean()):>+9.4f} "
               f"{100*fl:>8.2f}%")
