@@ -44,10 +44,13 @@ def main():
         return 1
     args = sys.argv[1:]
     min_n = None
+    json_out = None
     if "--min-n" in args:
         i = args.index("--min-n")
         min_n = int(args[i + 1])
         args = args[:i] + args[i + 2:]
+    if "--json" in args:
+        i = args.index("--json"); json_out = args[i + 1]; args = args[:i] + args[i + 2:]
     out_png = args[0]
     products = sorted(args[1:])
 
@@ -80,6 +83,28 @@ def main():
     print(f"  fraction r > 0    : {100*np.mean(g > 0):.1f}%")
     print(f"  fraction r > 0.3  : {100*np.mean(g > 0.3):.1f}%")
     print(f"  fraction r > 0.5  : {100*np.mean(g > 0.5):.1f}%")
+
+    if json_out:
+        import json
+        res = {
+            "reference": "ERA5-Land swvl1, per-cell temporal correlation",
+            "note": "seasonal cycle retained in both series; not an anomaly "
+                    "correlation (subtracting a per-cell constant leaves a "
+                    "correlation unchanged)",
+            "months": months,
+            "n_months": len(products),
+            "min_valid_months_per_cell": int(min_n),
+            "cells_evaluated": int(g.size),
+            "median_r": float(np.median(g)),
+            "mean_r": float(np.mean(g)),
+            "fraction_positive": float(np.mean(g > 0)),
+            "fraction_above_0.3": float(np.mean(g > 0.3)),
+            "fraction_above_0.5": float(np.mean(g > 0.5)),
+        }
+        os.makedirs(os.path.dirname(json_out) or ".", exist_ok=True)
+        with open(json_out, "w") as f:
+            json.dump(res, f, indent=2, sort_keys=True)
+        print(f"wrote {json_out}")
 
     _map(plat, plon, r, out_png, months)
     return 0

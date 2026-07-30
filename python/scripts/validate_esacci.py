@@ -47,9 +47,12 @@ def main():
     product, month = sys.argv[1], sys.argv[2]
     rest = sys.argv[3:]
     png = None
+    json_out = None
     data_dir = f"../data/esacci/{month}"
     if "--png" in rest:
         i = rest.index("--png"); png = rest[i + 1]; rest = rest[:i] + rest[i + 2:]
+    if "--json" in rest:
+        i = rest.index("--json"); json_out = rest[i + 1]; rest = rest[:i] + rest[i + 2:]
     if "--data-dir" in rest:
         i = rest.index("--data-dir"); data_dir = rest[i + 1]
 
@@ -89,6 +92,30 @@ def main():
         print(f"    {name:<14}: {z['ratio']:.2f}x  (mean SM {z['mean_hi']:.3f} vs "
               f"{z['mean_lo']:.3f}, n_wet={z['n_hi']:,})")
 
+    if json_out:
+        import json
+        res = {
+            "product": os.path.basename(product),
+            "reference": f"ESA CCI {PRODUCT} {VERSION}",
+            "month": month,
+            "n_cells": int(s["n"]),
+            "cci_coverage_cells": cov,
+            "spearman": float(s["spearman_r"]),
+            "pearson": float(s["pearson_r"]),
+            "pattern_correlation": float(pc),
+            "detection_contrast": {k: (int(v) if k.startswith("n_") else float(v))
+                                   for k, v in dc.items()},
+            "spearman_among_firing": float(among["spearman_r"]),
+            "categorical_vs_sm_tercile": {k: float(v) for k, v in cat.items()},
+            "contrast_by_zone": {name: {k: (int(v) if k.startswith("n_") else float(v))
+                                        for k, v in z.items()}
+                                 for name, z in
+                                 val.detection_by_zone(W, S, latm, thr=0.0).items()},
+        }
+        os.makedirs(os.path.dirname(json_out) or ".", exist_ok=True)
+        with open(json_out, "w") as f:
+            json.dump(res, f, indent=2, sort_keys=True)
+        print(f"wrote {json_out}")
     if png:
         _map(plat, plon, wet, sm_on, m, month, png)
     return 0

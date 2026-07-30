@@ -15,15 +15,22 @@ the product.
 
 Two perturbation modes, because they answer different questions:
 
-  random  independent per-cell noise at the residual scale. This is the realistic
+  random  independent per-cell noise at the residual scale. This is a stress
           case, and it asks how reproducible a cell's classification is.
   bias    a uniform offset applied everywhere. This asks how far a systematic
           calibration error would move the global statistics, and it tests the
           claim in the calibration memo that 1 K matters.
 
+A third mode, --paired, redraws actual (V, H) residual pairs from the fit's own
+collocated cells instead of independent Gaussian noise. The vertical and
+horizontal residuals are correlated, so paired draws are the more realistic
+per-cell error model, and the difference between the paired and independent flip
+fractions bounds the error-model dependence. It needs the overlap files named in
+the calibration JSON's metadata to be on disk.
+
 Usage:
     python -m scripts.calibration_sensitivity CSU_DAILY.nc --calib CAL.json
-        [--pass dsc] [--draws 25] [--out J.json]
+        [--pass dsc] [--draws 25] [--paired] [--out J.json]
 """
 
 import json
@@ -118,7 +125,54 @@ def main():
     print(f"  mean |change| in WET index   : {np.mean(dwet):.2f} on the 0 to 100 scale")
     print(f"  snow flag changes            : {100*np.mean(dsnow):.2f}% of cells")
 
-    # 2. Systematic offsets, including the 1 K case the calibration memo flags.
+    # 2. Paired empirical residuals: redraw actual (V, H) residual pairs from
+    # the fit's collocated cells, preserving the V-H residual correlation.
+    if "--paired" in argv:
+        with open(calib) as fh:
+            raw = json.load(fh)
+        pairs = [tuple(p) for p in raw["meta"]["pairs"]]
+        multi = raw.get("model", raw["meta"].get("model", "multi")) == "multi"
+        print(f"\ncollocating {len(pairs)} overlap pair(s) for empirical residuals ...")
+        c = calib_8591.pool(pairs, pass_=raw["meta"]["pass"])
+        Xv, Xh = calib_8591._design_matrices(c, multi)
+        rv = c["t85v"] - Xv @ np.asarray(coeffs["coef_v"], np.float64)
+        rh = c["t85h"] - Xh @ np.asarray(coeffs["coef_h"], np.float64)
+        corr_vh = float(np.corrcoef(rv, rh)[0, 1])
+        rng_p = np.random.RandomState(20260730)
+        ncell = tb.shape[0] * tb.shape[1]
+        p_flip, p_dfire, p_dwet, p_dsnow = [], [], [], []
+        for _ in range(draws):
+            idx = rng_p.randint(0, rv.size, ncell)
+            t = calib_8591.apply(tb.copy(), coeffs)
+            t[:, :, 5] += rv[idx].reshape(tb.shape[:2])
+            t[:, :, 6] += rh[idx].reshape(tb.shape[:2])
+            o = core_numpy.evaluate_kelvin(t.reshape(-1, 7))
+            w = np.asarray(o.wet, np.float64).reshape(-1)
+            s = np.asarray(o.snow, np.float64).reshape(-1)
+            v = valid & (w > WET_SENTINELS)
+            p_flip.append(float(((w > 0.0) != b_fire)[v].mean()))
+            p_dfire.append(float((w > 0.0)[v].mean() - b_fire[v].mean()))
+            p_dwet.append(float(np.abs(w[v] - b_wet[v]).mean()))
+            p_dsnow.append(float((s[v] != b_snow[v]).mean()))
+        res["paired_residual_perturbation"] = {
+            "draws": draws, "seed": 20260730,
+            "n_residual_pairs": int(rv.size),
+            "residual_vh_correlation": corr_vh,
+            "wet_classification_flip_frac_mean": float(np.mean(p_flip)),
+            "wet_classification_flip_frac_max": float(np.max(p_flip)),
+            "firing_fraction_shift_mean": float(np.mean(p_dfire)),
+            "mean_abs_wet_change": float(np.mean(p_dwet)),
+            "snow_flag_change_frac_mean": float(np.mean(p_dsnow)),
+        }
+        print(f"Paired empirical residuals ({draws} draws, "
+              f"{rv.size:,} residual pairs, V-H correlation {corr_vh:+.2f}):")
+        print(f"  wet/dry classification flips : {100*np.mean(p_flip):.2f}% of cells "
+              f"(worst draw {100*np.max(p_flip):.2f}%)")
+        print(f"  firing-fraction shift (mean) : {np.mean(p_dfire):+.4f}")
+        print(f"  mean |change| in WET index   : {np.mean(p_dwet):.2f}")
+        print(f"  snow flag changes            : {100*np.mean(p_dsnow):.2f}% of cells")
+
+    # 3. Systematic offsets, including the 1 K case the calibration memo flags.
     res["bias_perturbation"] = {}
     print("\nUniform offset applied to both 85 GHz channels:")
     print(f"  {'offset':>8} {'firing frac':>12} {'shift':>9} {'flips':>9}")

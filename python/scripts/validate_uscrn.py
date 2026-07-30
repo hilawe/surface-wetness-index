@@ -42,8 +42,12 @@ def main():
     if len(sys.argv) < 3:
         print(__doc__)
         return 1
-    uscrn_dir = sys.argv[1]
-    products = sorted(sys.argv[2:])
+    args = sys.argv[1:]
+    json_out = None
+    if "--json" in args:
+        i = args.index("--json"); json_out = args[i + 1]; args = args[:i] + args[i + 2:]
+    uscrn_dir = args[0]
+    products = sorted(args[1:])
     stations = load_station_monthly(uscrn_dir)
     if not stations:
         print(f"no USCRN station data found in {uscrn_dir}")
@@ -79,6 +83,24 @@ def main():
           f"   ({dc['ratio']:.2f}x, n_wet={dc['n_hi']:,})")
     print(f"    WET>0 predicts SM>tercile: POD={cat['POD']:.2f} FAR={cat['FAR']:.2f} "
           f"CSI={cat['CSI']:.2f} HSS={cat['HSS']:.2f}")
+    if json_out:
+        import json
+        res = {
+            "reference": "USCRN 5 cm soil moisture, point to pixel",
+            "products": [os.path.basename(p) for p in products],
+            "n_station_months": int(s["n"]),
+            "n_stations": len(used_stations),
+            "n_months": len(used_months),
+            "spearman": float(s["spearman_r"]),
+            "pearson": float(s["pearson_r"]),
+            "detection_contrast": {k: (int(v) if k.startswith("n_") else float(v))
+                                   for k, v in dc.items()},
+            "categorical_vs_sm_tercile": {k: float(v) for k, v in cat.items()},
+        }
+        os.makedirs(os.path.dirname(json_out) or ".", exist_ok=True)
+        with open(json_out, "w") as f:
+            json.dump(res, f, indent=2, sort_keys=True)
+        print(f"wrote {json_out}")
     return 0
 
 

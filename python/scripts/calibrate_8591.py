@@ -91,9 +91,13 @@ def main():
     ap.add_argument("--png")
     ap.add_argument("--save", help="write the fit as JSON to this path")
     ap.add_argument("--cv-k", type=int, default=5,
-                    help="k-fold cross-validation folds for the honest fit "
+                    help="k-fold cross-validation folds for the held-out fit "
                     "quality estimate. The saved fit uses all data; CV is the "
                     "diagnostic. Set 0 to skip CV and only report in-sample.")
+    ap.add_argument("--loo-save",
+                    help="run leave-one-date-out cross-validation across the "
+                    "file pairs and write the per-date and pooled diagnostics "
+                    "as JSON to this path")
     a = ap.parse_args()
     if len(a.files) % 2 != 0:
         ap.error("provide pairs: SSM/I then SSMIS, even count")
@@ -105,6 +109,40 @@ def main():
     else:
         f = cal.fit(c, multi=not a.linear)
     report(f)
+    if a.loo_save:
+        import json
+        import os
+        import re
+        labels = []
+        for ssmi_f, _ in pairs:
+            m = re.search(r"D(\d{8})", ssmi_f)
+            labels.append(m.group(1) if m else ssmi_f.split("/")[-1])
+        c_by_pair = {lab: cal.pool([pr], pass_=a.pass_)
+                     for lab, pr in zip(labels, pairs)}
+        loo = cal.cross_validated_fit_by_pair(c_by_pair, multi=not a.linear)
+        res = {
+            "method": "leave-one-date-out across file pairs",
+            "pairs": {lab: [p.split("/")[-1] for p in pr]
+                      for lab, pr in zip(labels, pairs)},
+            "pass": a.pass_,
+            "model": "linear" if a.linear else "multi",
+            "in_sample": {"stats_v": f["stats_v"], "stats_h": f["stats_h"],
+                          "n": f["n"]},
+            "loo_per_date": loo["cv_per_pair"],
+            "loo_pooled": {"stats_v": loo["cv_stats_v"],
+                           "stats_h": loo["cv_stats_h"],
+                           "n_held": loo["n_held"]},
+        }
+        os.makedirs(os.path.dirname(a.loo_save) or ".", exist_ok=True)
+        with open(a.loo_save, "w") as fh:
+            json.dump(res, fh, indent=2, sort_keys=True)
+        print(f"\nleave-one-date-out diagnostics written to {a.loo_save}")
+        for lab in labels:
+            st = loo["cv_per_pair"][lab]
+            print(f"  {lab}: 85V rms {st['stats_v']['rms']:.2f} K, "
+                  f"85H rms {st['stats_h']['rms']:.2f} K (n={st['n']:,})")
+        print(f"  pooled held-out: 85V rms {loo['cv_stats_v']['rms']:.2f} K, "
+              f"85H rms {loo['cv_stats_h']['rms']:.2f} K")
     if a.save:
         from swi import calib_8591 as _cal
         _cal.save_fit(f, a.save, meta={"pairs": pairs, "pass": a.pass_,

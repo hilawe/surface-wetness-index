@@ -41,9 +41,12 @@ def main():
     product, month = sys.argv[1], sys.argv[2]
     era5_path = None
     png = None
+    json_out = None
     rest = sys.argv[3:]
     if "--png" in rest:
         i = rest.index("--png"); png = rest[i + 1]; rest = rest[:i] + rest[i + 2:]
+    if "--json" in rest:
+        i = rest.index("--json"); json_out = rest[i + 1]; rest = rest[:i] + rest[i + 2:]
     if rest:
         era5_path = rest[0]
     if era5_path is None:
@@ -76,6 +79,24 @@ def main():
     print(f"    WET>0 predicts SM>tercile: POD={cat['POD']:.2f} FAR={cat['FAR']:.2f} "
           f"CSI={cat['CSI']:.2f} HSS={cat['HSS']:.2f}")
 
+    if json_out:
+        import json
+        res = {
+            "product": os.path.basename(product),
+            "reference": "ERA5-Land swvl1",
+            "month": month,
+            "n_cells": int(s["n"]),
+            "spearman": float(s["spearman_r"]),
+            "pearson": float(s["pearson_r"]),
+            "pattern_correlation": float(pc),
+            "detection_contrast": {k: (int(v) if k.startswith("n_") else float(v))
+                                   for k, v in dc.items()},
+            "categorical_vs_sm_tercile": {k: float(v) for k, v in cat.items()},
+        }
+        os.makedirs(os.path.dirname(json_out) or ".", exist_ok=True)
+        with open(json_out, "w") as f:
+            json.dump(res, f, indent=2, sort_keys=True)
+        print(f"wrote {json_out}")
     if png:
         _map(plat, plon, wet, sm_on, m, month, png)
     return 0
