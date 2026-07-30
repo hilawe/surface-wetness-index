@@ -26,7 +26,7 @@ def main():
         return 1
     path = argv[1]
     pass_ = opt(argv, "--pass", "dsc")
-    out = opt(argv, "--out", "../docs/figures/fig1_product.png")
+    out = opt(argv, "--out", "../docs/figures/fig_product.png")
 
     import netCDF4 as nc
     ds = nc.Dataset(path)
