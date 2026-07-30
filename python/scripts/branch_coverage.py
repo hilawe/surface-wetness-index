@@ -46,7 +46,9 @@ PROVEN_UNREACHABLE = {
         "evaluated regardless of its own condition."
     ),
     "c28else": (
-        "The else limb of TEST 28. TEST 28 is unreachable, so neither of its limbs "
+        "The fall-through limb inside TEST 28's satisfied branch, taken when "
+        "TEST 28 holds and TEST 29 does not. TEST 28's condition can never "
+        "hold, so neither TEST 29 nor this limb "
         "can be taken."
     ),
     "c23": (
@@ -98,6 +100,18 @@ def main():
     res = {
         "cells": cells, "seed": seed,
         "n_conditions": len(names),
+        "condition_semantics": (
+            "Each label counts inputs for which the named condition HOLDS. "
+            "cNN is a numbered test's condition, cNNelse the complementary limb "
+            "actually taken in the code (for c28else, the limb inside TEST 28's "
+            "satisfied branch when TEST 29 does not hold), and c26_live and "
+            "c26_noc28 are diagnostic sub-populations of TEST 26. The 42 "
+            "instrumented conditions are not a one-to-one relabeling of the 42 "
+            "numbered tests."),
+        "uninstrumented_tests": (
+            "TESTS 1 to 4 are the gap and bad-data screens applied to every "
+            "cell before the instrumented region; TESTS 11, 12, 39, and 40 are "
+            "unconditional assignments, not conditions."),
         "reached": reached,
         "never_true_in_sample": never,
         "proven_unreachable": {k: v for k, v in PROVEN_UNREACHABLE.items() if k in names},

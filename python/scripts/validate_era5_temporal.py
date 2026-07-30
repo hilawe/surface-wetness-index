@@ -75,7 +75,7 @@ def main():
     r, n = val.temporal_anomaly_correlation(A, B, min_n=min_n)
     print(f"\n(min valid months per cell = {min_n} of {len(products)})")
     g = r[np.isfinite(r)]
-    print(f"\nTemporal anomaly correlation (WET vs ERA5-Land swvl1), "
+    print(f"\nTemporal correlation (WET vs ERA5-Land swvl1), "
           f"{len(products)} months {months[0]}..{months[-1]}:")
     print(f"  cells evaluated   : {g.size:,}")
     print(f"  median r          : {np.median(g):+.3f}")
@@ -119,10 +119,10 @@ def _map(lat, lon, r, out, months):
     fig, ax = plt.subplots(figsize=(11, 5))
     im = ax.imshow(img, origin="lower", extent=[-180, 180, lat.min(), lat.max()],
                    aspect="auto", cmap="RdBu_r", vmin=-1, vmax=1)
-    ax.set_title(f"WET vs ERA5-Land soil moisture: temporal anomaly correlation "
-                 f"({months[0]} to {months[-1]})")
+    ax.set_title(f"WET vs ERA5-Land soil moisture, per-cell temporal correlation "
+                 f"({months[0]} to {months[-1]}), seasonal cycle retained")
     ax.set_xlabel("longitude"); ax.set_ylabel("latitude")
-    fig.colorbar(im, ax=ax, shrink=0.85, label="per-cell anomaly correlation r")
+    fig.colorbar(im, ax=ax, shrink=0.85, label="per-cell temporal correlation r")
     fig.tight_layout(); fig.savefig(out, dpi=110)
     print(f"wrote {out}")
 

@@ -122,6 +122,8 @@ def main():
         loo = cal.cross_validated_fit_by_pair(c_by_pair, multi=not a.linear)
         res = {
             "method": "leave-one-date-out across file pairs",
+            "r2_definition": ("1 - Var(residual)/Var(truth); the bias term is "
+                              "removed, unlike the residual-sum-of-squares R2"),
             "pairs": {lab: [p.split("/")[-1] for p in pr]
                       for lab, pr in zip(labels, pairs)},
             "pass": a.pass_,

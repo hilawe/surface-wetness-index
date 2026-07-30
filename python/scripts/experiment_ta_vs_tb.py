@@ -63,8 +63,12 @@ def main():
     if len(sys.argv) < 3:
         print(__doc__)
         return 1
-    files = sorted(glob.glob(f"{sys.argv[1]}/*.nc"))
-    swamps = sys.argv[2]
+    argv = list(sys.argv[1:])
+    json_out = None
+    if "--json" in argv:
+        i = argv.index("--json"); json_out = argv[i + 1]; argv = argv[:i] + argv[i + 2:]
+    files = sorted(glob.glob(f"{argv[0]}/*.nc"))
+    swamps = argv[1]
     print(f"compositing {len(files)} days two ways (Tb baseline, Ta-equivalent)...")
 
     with np.errstate(divide="ignore", invalid="ignore"):
@@ -82,6 +86,23 @@ def main():
             ("n co-located", "n", "{:,}")]
     for label, key, fmt in rows:
         print(f"{label:<22}{fmt.format(tb[key]):>14}{fmt.format(ta[key]):>16}")
+    if json_out:
+        import json
+        import os
+        res = {
+            "note": ("first-order Ta approximation only: fixed Grody and "
+                     "Basist (1996) per-channel offsets subtracted from Tb; "
+                     "no 85-to-91 calibration in either run"),
+            "grody_offsets_k": [float(x) for x in GRODY_OFFSET],
+            "n_days": len(files),
+            "reference": swamps,
+            "tb_baseline": tb,
+            "ta_equivalent": ta,
+        }
+        os.makedirs(os.path.dirname(json_out) or ".", exist_ok=True)
+        with open(json_out, "w") as fh:
+            json.dump(res, fh, indent=2, sort_keys=True)
+        print(f"wrote {json_out}")
     return 0
 
 

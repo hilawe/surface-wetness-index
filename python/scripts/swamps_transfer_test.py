@@ -67,6 +67,7 @@ def main():
 
     s = val.skill_scores(W, F)
     sp_w = val.weighted_spearman(W, F, w)
+    sp_w_rd = val.weighted_spearman_rankdist(W, F, w)
     pe_w = val.weighted_pearson(W, F, w)
     dc = val.detection_contrast(W, F, thr=WET_THR)
     dc_w = val.weighted_detection_contrast(W, F, w, thr=WET_THR)
@@ -85,7 +86,7 @@ def main():
         return val.weighted_spearman(W[idx], F[idx], w[idx])
 
     ci = val.block_bootstrap_ci(wsp, val.block_ids(LAT, LON, BLOCK_DEG),
-                                n_draws=draws, seed=seed)
+                                n_draws=draws, seed=seed, return_draws=True)
 
     zones = val.detection_by_zone(W, F, LAT, thr=WET_THR)
 
@@ -95,6 +96,7 @@ def main():
                               "fw_clearly_inundated": FW_CLEAR},
         "n_cells": int(s["n"]),
         "spearman_area_weighted": sp_w, "spearman_unweighted": s["spearman_r"],
+        "spearman_area_weighted_rankdist": sp_w_rd,
         "pearson_area_weighted": pe_w, "pearson_unweighted": s["pearson_r"],
         "contrast_area_weighted": dc_w, "contrast_unweighted": dc,
         "contingency": cat,

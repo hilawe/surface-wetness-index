@@ -68,8 +68,12 @@ def _float_equal(a, b):
 
 
 def main():
-    n = int(sys.argv[1]) if len(sys.argv) > 1 else 2_000_000
-    seed = int(sys.argv[2]) if len(sys.argv) > 2 else 12345
+    argv = list(sys.argv[1:])
+    json_out = None
+    if "--json" in argv:
+        i = argv.index("--json"); json_out = argv[i + 1]; argv = argv[:i] + argv[i + 2:]
+    n = int(argv[0]) if len(argv) > 0 else 2_000_000
+    seed = int(argv[1]) if len(argv) > 1 else 12345
     print(f"sample: {n:,} cells  seed={seed}")
 
     chan = make_sample(n, seed)
@@ -88,6 +92,41 @@ def main():
     print(f"  RTEMP exact: {temp_ok.mean()*100:.4f}%   mism={int((~temp_ok).sum()):,}")
     print(f"  WET   exact: {wet_ok.mean()*100:.4f}%   mism={int((~wet_ok).sum()):,}")
     print(f"  TOTAL mismatching cells: {n_bad:,} / {n:,}")
+
+    if json_out:
+        import hashlib
+        import json
+        import os
+        def sha(path):
+            with open(path, "rb") as fh:
+                return hashlib.sha256(fh.read()).hexdigest()
+        res = {
+            "cells": n, "seed": seed,
+            "sample_construction": ("one third physically structured, one "
+                                    "third wet-surface targeted near the "
+                                    "WET = 0 boundary, one third raw uniform "
+                                    "over the full packed byte domain"),
+            "mismatches": {
+                "snow": int((~snow_ok).sum()),
+                "ret": int((~ret_ok).sum()),
+                "rtemp": int((~temp_ok).sum()),
+                "wet": int((~wet_ok).sum()),
+                "total_cells_mismatching": n_bad,
+            },
+            "comparison": ("float32-exact for RTEMP and WET with NaN treated "
+                           "as equal to NaN, integer-exact for SNOW and the "
+                           "return code"),
+            "reference_engine": "compiled shared library from src/sig_recog.c",
+            "source_sha256": {
+                "src/sig_recog.c": sha("../src/sig_recog.c"),
+                "src/swi_api.c": sha("../src/swi_api.c"),
+            },
+            "numpy_version": np.__version__,
+        }
+        os.makedirs(os.path.dirname(json_out) or ".", exist_ok=True)
+        with open(json_out, "w") as fh:
+            json.dump(res, fh, indent=2, sort_keys=True)
+        print(f"wrote {json_out}")
 
     if n_bad:
         idx = np.flatnonzero(~all_ok)[:12]
