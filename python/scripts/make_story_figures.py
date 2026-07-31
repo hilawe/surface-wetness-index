@@ -66,27 +66,34 @@ def fig_calibration(results, out, plt):
     ax1.tick_params(labelsize=tick)
     _panel_label(ax1, "a", 12 * sc)
 
+    # Both components share one denominator, the baseline-valid cells, and
+    # stack to the fraction that fails to reproduce its baseline classification
+    # by either route. The flip component is rescaled from its conditional form
+    # onto that common denominator so the bar total is the committed
+    # changed-or-invalidated fraction.
     models = ("independent\nGaussian", "paired\nempirical")
-    flips = [100 * d["random_perturbation"]["wet_classification_flip_frac_mean"],
-             100 * d["paired_residual_perturbation"]["wet_classification_flip_frac_mean"]]
-    inval = [100 * d["random_perturbation"]["invalidated_frac_mean"],
-             100 * d["paired_residual_perturbation"]["invalidated_frac_mean"]]
+    keys = ("random_perturbation", "paired_residual_perturbation")
+    inval = [100 * d[k]["invalidated_frac_mean"] for k in keys]
+    total = [100 * d[k]["changed_or_invalidated_frac_mean"] for k in keys]
+    flips = [t - i for t, i in zip(total, inval)]
     x = np.arange(2)
-    bw = 0.34
-    ax2.bar(x - bw / 2, flips, bw, color="C0", label="classification flips")
-    ax2.bar(x + bw / 2, inval, bw, color="C3", alpha=0.8,
+    bw = 0.45
+    ax2.bar(x, flips, bw, color="C0", label="classification flipped")
+    ax2.bar(x, inval, bw, bottom=flips, color="C3", alpha=0.85,
             label="pushed out of the retrieval")
     ax2.set_xticks(x)
     ax2.set_xticklabels(models, fontsize=tick)
     ax2.set_ylabel("percent of baseline-valid cells", fontsize=lab)
-    ax2.set_title("Per-cell noise at the residual scale", fontsize=t, pad=4)
-    ax2.set_ylim(0, 20)
+    ax2.set_title("Baseline classification not reproduced", fontsize=t, pad=4)
+    ax2.set_ylim(0, 30)
     ax2.legend(fontsize=tick, loc="upper right", frameon=False)
     ax2.tick_params(labelsize=tick)
-    for xi, v in zip(x - bw / 2, flips):
-        ax2.text(xi, v + 0.3, f"{v:.1f}", ha="center", fontsize=tick)
-    for xi, v in zip(x + bw / 2, inval):
-        ax2.text(xi, v + 0.3, f"{v:.1f}", ha="center", fontsize=tick)
+    for xi, f, i, tt in zip(x, flips, inval, total):
+        ax2.text(xi, f / 2, f"{f:.1f}", ha="center", va="center",
+                 fontsize=tick, color="white")
+        ax2.text(xi, f + i / 2, f"{i:.1f}", ha="center", va="center",
+                 fontsize=tick, color="white")
+        ax2.text(xi, tt + 0.6, f"{tt:.1f} total", ha="center", fontsize=tick)
     _panel_label(ax2, "b", 12 * sc)
 
     fig.savefig(os.path.join(out, "fig_calibration.png"), dpi=150)

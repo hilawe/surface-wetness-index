@@ -100,13 +100,18 @@ def main():
 
     # 1. Realistic per-cell noise at the residual scale.
     rng = np.random.RandomState(20260729)
-    flip, dfire, dwet, dsnow, dropped = [], [], [], [], []
+    flip, dfire, dwet, dsnow, dropped, changed = [], [], [], [], [], []
     for _ in range(draws):
         o = _outputs(tb, coeffs, rng=rng, sd_v=sd_v, sd_h=sd_h)
         w = np.asarray(o.wet, np.float64).reshape(-1)
         s = np.asarray(o.snow, np.float64).reshape(-1)
         v = valid & (w > WET_SENTINELS)
         dropped.append(float((valid & ~(w > WET_SENTINELS)).sum() / valid.sum()))
+        # A cell fails to reproduce its baseline classification either by
+        # flipping or by dropping out of the retrieval entirely.
+        changed.append(float((valid & (~(w > WET_SENTINELS)
+                                       | ((w > 0.0) != b_fire))).sum()
+                             / valid.sum()))
         flip.append(float((( w > 0.0) != b_fire)[v].mean()))
         dfire.append(float((w > 0.0)[v].mean() - b_fire[v].mean()))
         dwet.append(float(np.abs(w[v] - b_wet[v]).mean()))
@@ -114,9 +119,13 @@ def main():
     res["random_perturbation"] = {
         "draws": draws, "seed": 20260729,
         "invalidated_frac_mean": float(np.mean(dropped)),
+        "changed_or_invalidated_frac_mean": float(np.mean(changed)),
         "denominator": ("flip fractions are over baseline-valid cells that "
-                        "remain valid under the perturbation; the invalidated "
-                        "fraction is reported separately"),
+                        "remain valid under the perturbation, and the "
+                        "invalidated fraction is reported separately. "
+                        "changed_or_invalidated_frac_mean is the fraction of "
+                        "baseline-valid cells that fail to reproduce their "
+                        "classification by either route, over one denominator"),
         "wet_classification_flip_frac_mean": float(np.mean(flip)),
         "wet_classification_flip_frac_max": float(np.max(flip)),
         "firing_fraction_shift_mean": float(np.mean(dfire)),
@@ -145,7 +154,8 @@ def main():
         corr_vh = float(np.corrcoef(rv, rh)[0, 1])
         rng_p = np.random.RandomState(20260730)
         ncell = tb.shape[0] * tb.shape[1]
-        p_flip, p_dfire, p_dwet, p_dsnow, p_dropped = [], [], [], [], []
+        p_flip, p_dfire, p_dwet, p_dsnow, p_dropped, p_changed = ([], [], [],
+                                                                    [], [], [])
         for _ in range(draws):
             idx = rng_p.randint(0, rv.size, ncell)
             t = calib_8591.apply(tb.copy(), coeffs)
@@ -156,6 +166,9 @@ def main():
             s = np.asarray(o.snow, np.float64).reshape(-1)
             v = valid & (w > WET_SENTINELS)
             p_dropped.append(float((valid & ~(w > WET_SENTINELS)).sum() / valid.sum()))
+            p_changed.append(float((valid & (~(w > WET_SENTINELS)
+                                             | ((w > 0.0) != b_fire))).sum()
+                                   / valid.sum()))
             p_flip.append(float(((w > 0.0) != b_fire)[v].mean()))
             p_dfire.append(float((w > 0.0)[v].mean() - b_fire[v].mean()))
             p_dwet.append(float(np.abs(w[v] - b_wet[v]).mean()))
@@ -163,6 +176,7 @@ def main():
         res["paired_residual_perturbation"] = {
             "draws": draws, "seed": 20260730,
             "invalidated_frac_mean": float(np.mean(p_dropped)),
+            "changed_or_invalidated_frac_mean": float(np.mean(p_changed)),
             "n_residual_pairs": int(rv.size),
             "residual_vh_correlation": corr_vh,
             "wet_classification_flip_frac_mean": float(np.mean(p_flip)),
