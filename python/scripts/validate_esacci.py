@@ -98,7 +98,7 @@ def main():
         return r["ratio"]
     ci = val.block_bootstrap_ci(contrast_ratio,
                                 val.block_ids(latm, lonm, 10.0),
-                                n_draws=2000, seed=20260731)
+                                n_draws=2000, seed=20260731, null_value=1.0)
     print(f"    contrast 95% interval (10-degree blocks): "
           f"[{ci['lo']:.2f}, {ci['hi']:.2f}] over {ci['n_blocks']} blocks")
 

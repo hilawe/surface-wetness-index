@@ -92,7 +92,7 @@ def main():
         return r["ratio"]
     _, sid_codes = np.unique(SID, return_inverse=True)
     ci = val.block_bootstrap_ci(contrast_ratio, sid_codes, n_draws=2000,
-                                seed=20260731)
+                                seed=20260731, null_value=1.0)
     print(f"    contrast 95% interval (station blocks): "
           f"[{ci['lo']:.2f}, {ci['hi']:.2f}] over {ci['n_blocks']} stations")
     if json_out:

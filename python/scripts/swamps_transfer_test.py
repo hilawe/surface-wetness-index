@@ -92,7 +92,7 @@ def main():
         r = val.weighted_detection_contrast(W[idx], F[idx], w[idx], thr=WET_THR)
         return r["ratio"]
     ci_c = val.block_bootstrap_ci(wcontrast, val.block_ids(LAT, LON, BLOCK_DEG),
-                                  n_draws=draws, seed=seed)
+                                  n_draws=draws, seed=seed, null_value=1.0)
 
     zones = val.detection_by_zone(W, F, LAT, thr=WET_THR)
 

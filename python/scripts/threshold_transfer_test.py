@@ -12,7 +12,7 @@ other month. The sweep answers whether the natural threshold's false alarm
 ratio is intrinsic to the index or a property of the untuned operating point,
 and the transfer shows whether a tuned threshold carries across sensor eras.
 
-This analysis is post hoc; it was not part of the preregistered comparisons.
+This analysis is post hoc and was not part of the preregistered comparisons.
 """
 
 import json
@@ -29,8 +29,10 @@ def opt(argv, flag, default=None):
 
 
 FW_INUNDATED = 0.05
-THRESHOLDS = [0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 7.5, 10.0, 12.5, 15.0,
-              20.0, 25.0, 30.0]
+# Uniform 0.5-step grid. A coarser grid placed the optimum at a grid point
+# rather than at the true maximum, so the step is fixed and reported.
+THRESHOLD_STEP = 0.5
+THRESHOLDS = [round(0.5 * i, 1) for i in range(0, 61)]
 
 
 def read_product(path, pass_="dsc"):
@@ -86,8 +88,12 @@ def main():
     xfer_ba = val.categorical(Wa, Fa, a_hi=best_b["threshold"], b_hi=FW_INUNDATED)
 
     res = {
-        "note": ("post hoc threshold sweep; not part of the preregistered "
-                 "comparisons"),
+        "note": ("post hoc threshold sweep, not part of the preregistered "
+                 "comparisons. The reported optimum is the best threshold on "
+                 "the stated grid, not a continuous maximum. When the two "
+                 "optima coincide, each cross-score equals the receiving "
+                 "month's own tuned score by construction."),
+        "threshold_step": THRESHOLD_STEP,
         "inundation_definition": f"fractional water > {FW_INUNDATED}",
         "thresholds": THRESHOLDS,
         la: {"n": int(Wa.size), "curve": rows_a, "best_csi": best_a},

@@ -9,15 +9,16 @@ three numbers come from different domains, periods, and validity masks, so their
 agreement is suggestive rather than a controlled comparison.
 
 This driver removes the support mismatch between two of them. It takes the
-station-months that survive the USCRN comparison, reads ERA5-Land at exactly the
-grid cells containing those stations for exactly those months, and computes the
-detection contrast for both references over that identical population. A
+station-months where both references and the retrieval carry valid values, reads
+ERA5-Land at exactly the grid cells containing those stations for exactly those
+months, and computes the detection contrast for both references over that
+identical population. A
 station-block bootstrap gives an interval for each contrast and, more to the
 point, for their difference, since the two are measured on the same draws.
 
-A residual mismatch remains and is not removable: USCRN is a point measurement
-and ERA5-Land is a cell average, so the two describe the same cells at different
-spatial scales.
+A residual mismatch remains and is not removable, since USCRN is a point
+measurement and ERA5-Land is a cell average, so the two describe the same cells
+at different spatial scales.
 """
 
 import json
@@ -111,12 +112,14 @@ def main():
     def c_diff(idx):
         return c_uscrn(idx) - c_era5(idx)
 
-    ci_u = val.block_bootstrap_ci(c_uscrn, sid_codes, n_draws=2000, seed=20260731)
-    ci_e = val.block_bootstrap_ci(c_era5, sid_codes, n_draws=2000, seed=20260731)
+    ci_u = val.block_bootstrap_ci(c_uscrn, sid_codes, n_draws=2000,
+                                  seed=20260731, null_value=1.0)
+    ci_e = val.block_bootstrap_ci(c_era5, sid_codes, n_draws=2000,
+                                  seed=20260731, null_value=1.0)
     ci_d = val.block_bootstrap_ci(c_diff, sid_codes, n_draws=2000, seed=20260731)
 
     res = {
-        "note": ("post hoc; matched-support comparison of two soil-moisture "
+        "note": ("post hoc matched-support comparison of two soil-moisture "
                  "references over identical station-months. USCRN is a point "
                  "measurement and ERA5-Land a cell average, a scale difference "
                  "this design does not remove."),
