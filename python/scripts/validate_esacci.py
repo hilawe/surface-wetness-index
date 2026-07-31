@@ -67,6 +67,7 @@ def main():
     m = val.common_valid(wet, sm_on, land) & unfrozen & (wet >= 0)
 
     latm = np.broadcast_to(plat[:, None], wet.shape)[m]
+    lonm = np.broadcast_to(plon[None, :], wet.shape)[m]
     W, S = wet[m], sm_on[m]
     s = val.skill_scores(W, S)
     pc = val.pattern_correlation(wet, sm_on, m)
@@ -92,6 +93,15 @@ def main():
         print(f"    {name:<14}: {z['ratio']:.2f}x  (mean SM {z['mean_hi']:.3f} vs "
               f"{z['mean_lo']:.3f}, n_wet={z['n_hi']:,})")
 
+    def contrast_ratio(idx):
+        r = val.detection_contrast(W[idx], S[idx], thr=0.0)
+        return r["ratio"]
+    ci = val.block_bootstrap_ci(contrast_ratio,
+                                val.block_ids(latm, lonm, 10.0),
+                                n_draws=2000, seed=20260731)
+    print(f"    contrast 95% interval (10-degree blocks): "
+          f"[{ci['lo']:.2f}, {ci['hi']:.2f}] over {ci['n_blocks']} blocks")
+
     if json_out:
         import json
         res = {
@@ -105,6 +115,10 @@ def main():
             "pattern_correlation": float(pc),
             "detection_contrast": {k: (int(v) if k.startswith("n_") else float(v))
                                    for k, v in dc.items()},
+            "contrast_bootstrap_spatial_blocks": {
+                "block_deg": 10.0, "seed": 20260731,
+                "lo": float(ci["lo"]), "hi": float(ci["hi"]),
+                "n_blocks": int(ci["n_blocks"]), "n_draws": int(ci["n_draws"])},
             "spearman_among_firing": float(among["spearman_r"]),
             "categorical_vs_sm_tercile": {k: float(v) for k, v in cat.items()},
             "contrast_by_zone": {name: {k: (int(v) if k.startswith("n_") else float(v))

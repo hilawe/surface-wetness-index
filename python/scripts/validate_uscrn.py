@@ -53,7 +53,7 @@ def main():
         print(f"no USCRN station data found in {uscrn_dir}")
         return 1
 
-    W, S, LAT = [], [], []
+    W, S, LAT, SID = [], [], [], []
     used_stations, used_months = set(), set()
     for p in products:
         lat, lon, wet, snowf, month = read_product(p)
@@ -66,10 +66,11 @@ def main():
             wv, sf = wet[i, j], snowf[i, j]
             if not np.isfinite(wv) or wv < 0 or sf > 0.5:
                 continue
-            W.append(wv); S.append(sm); LAT.append(st["lat"])
+            W.append(wv); S.append(sm); LAT.append(st["lat"]); SID.append(wban)
             used_stations.add(wban); used_months.add(month)
 
     W = np.asarray(W); S = np.asarray(S); LAT = np.asarray(LAT)
+    SID = np.asarray(SID)
     s = val.skill_scores(W, S)
     dc = val.detection_contrast(W, S, thr=0.0)
     b_hi = np.quantile(S, 0.667)
@@ -83,6 +84,17 @@ def main():
           f"   ({dc['ratio']:.2f}x, n_wet={dc['n_hi']:,})")
     print(f"    WET>0 predicts SM>tercile: POD={cat['POD']:.2f} FAR={cat['FAR']:.2f} "
           f"CSI={cat['CSI']:.2f} HSS={cat['HSS']:.2f}")
+
+    # Station-block bootstrap on the detection contrast: stations are the
+    # exchangeable units, since a station's months are not independent.
+    def contrast_ratio(idx):
+        r = val.detection_contrast(W[idx], S[idx], thr=0.0)
+        return r["ratio"]
+    _, sid_codes = np.unique(SID, return_inverse=True)
+    ci = val.block_bootstrap_ci(contrast_ratio, sid_codes, n_draws=2000,
+                                seed=20260731)
+    print(f"    contrast 95% interval (station blocks): "
+          f"[{ci['lo']:.2f}, {ci['hi']:.2f}] over {ci['n_blocks']} stations")
     if json_out:
         import json
         res = {
@@ -95,6 +107,9 @@ def main():
             "pearson": float(s["pearson_r"]),
             "detection_contrast": {k: (int(v) if k.startswith("n_") else float(v))
                                    for k, v in dc.items()},
+            "contrast_bootstrap_station_blocks": {
+                "seed": 20260731, "lo": float(ci["lo"]), "hi": float(ci["hi"]),
+                "n_blocks": int(ci["n_blocks"]), "n_draws": int(ci["n_draws"])},
             "categorical_vs_sm_tercile": {k: float(v) for k, v in cat.items()},
         }
         os.makedirs(os.path.dirname(json_out) or ".", exist_ok=True)

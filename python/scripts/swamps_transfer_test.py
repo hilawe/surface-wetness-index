@@ -88,6 +88,12 @@ def main():
     ci = val.block_bootstrap_ci(wsp, val.block_ids(LAT, LON, BLOCK_DEG),
                                 n_draws=draws, seed=seed, return_draws=True)
 
+    def wcontrast(idx):
+        r = val.weighted_detection_contrast(W[idx], F[idx], w[idx], thr=WET_THR)
+        return r["ratio"]
+    ci_c = val.block_bootstrap_ci(wcontrast, val.block_ids(LAT, LON, BLOCK_DEG),
+                                  n_draws=draws, seed=seed)
+
     zones = val.detection_by_zone(W, F, LAT, thr=WET_THR)
 
     res = {
@@ -106,6 +112,8 @@ def main():
         "n_firing_cells": int(pos.sum()),
         "block_bootstrap_area_weighted_spearman": {
             "block_deg": BLOCK_DEG, "seed": seed, **ci},
+        "block_bootstrap_area_weighted_contrast": {
+            "block_deg": BLOCK_DEG, "seed": seed, **ci_c},
         "contrast_by_zone": zones,
     }
 
