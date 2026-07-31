@@ -9,7 +9,7 @@ and 2004 from the Defense Meteorological Satellite Program (DMSP) Special Sensor
 Microwave/Imager (SSM/I) record. From the seven SSM/I imager channels the
 algorithm classifies each grid cell by surface and atmospheric condition through
 a 42-node decision tree and retrieves three quantities: a 0 to 100 wetness index
-(WET), an all-weather land surface skin temperature (RTEMP), and a snow and ice
+(WET), a near-surface temperature (RTEMP), and a snow and ice
 flag derived from microwave scattering (SNOW). Through the 2000s the index was a
 widely cited detector of surface wetness and inundation in the BAMS State of the
 Climate reports and in agricultural and hydrological monitoring; development at
@@ -21,11 +21,13 @@ Brightness Temperature Fundamental Climate Data Record, so the index can run
 continuously from 1987 to the present on the same intercalibrated input that
 NOAA stewards. The original C decision tree builds as a shared library that
 serves as the reference oracle, and a vectorized NumPy port reproduces it cell
-for cell at zero mismatches over fifteen million test cells across full branch
-coverage. The product writers emit daily, weekly, and monthly Climate and
+for cell at zero mismatches over fifteen million tested cells. Of the 42
+instrumented conditions in the tree, 38 are satisfiable and all 38 are
+exercised; the remaining four are provably unreachable in the recovered source
+and are reported rather than repaired. The product writers emit daily, weekly, and monthly Climate and
 Forecast (CF) compliant NetCDF files, and the index has been validated against
-four references that span the modern record, three physically independent and
-one related microwave benchmark: ESA Climate Change
+references that span the modern record, two physically independent and
+two sharing the index's microwave measurement family: ESA Climate Change
 Initiative soil moisture, ERA5-Land soil moisture, U.S. Climate Reference
 Network in-situ measurements, and Surface Water Microwave Product Series
 inundation fraction.
@@ -51,7 +53,8 @@ hydrological product family in the 1990s.
   on the float32 outputs across the full byte input domain.
 - **Channel conventions** (`python/swi/channels.py`): the seven-channel byte
   packing (brightness temperature minus 70 K) inherited from the original
-  daily one-third degree grids, and the output sentinels.
+  daily one-third degree grids, retained here on the 0.25 degree CSU input,
+  and the output sentinels.
 - **CSU FCDR gridded reader** (`python/swi/io_csu_grid.py`): direct ingest of
   the CSU Brightness Temperature Fundamental Climate Data Record daily 0.25
   degree gridded product, for SSM/I, SSMIS, and AMSR2 sensors.
@@ -90,14 +93,14 @@ its own synthetic input and always runs.
 
 - A faithful modern reimplementation of an empirical algorithm whose original
   source had drifted across two decades, validated to a zero-mismatch
-  regression against the original C decision tree on fifteen million test
-  cells with full branch coverage.
+  regression against the original C decision tree on fifteen million tested
+  cells, exercising all 38 satisfiable conditions of the 42 instrumented.
 - A continuous 1987 to present input through the CSU Brightness Temperature
   FCDR, intercalibrated across the DMSP morning and late-morning constellation
   chains by NOAA-stewarded reprocessing.
-- Validation against four reference datasets, three physically independent and
-  one related microwave benchmark, shows the index is a
-  strong wet versus dry surface-water detector, with detection contrast in the
+- Validation against reference datasets, two of them physically independent and
+  two sharing the index's microwave measurement family, shows the index
+  corresponds spatially with surface water, with detection contrast in the
   range expected from the original literature, rather than a quantitative soil
   moisture proxy. That framing matches what Basist and colleagues argued in
   the original 1998 and 2001 papers.

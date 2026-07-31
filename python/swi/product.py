@@ -217,10 +217,10 @@ def write_composite_product(out_path, lat, lon, by_pass, meta, period="monthly",
 
         ds.Conventions = "CF-1.8 ACDD-1.3"
         ds.title = f"Surface Wetness Index (Basist) {pw} product"
-        ds.summary = (f"{pw.capitalize()} mean surface wetness index, land skin "
-                      "temperature, and snow frequency from the Basist signal-"
-                      "recognition decision tree applied to CSU SSM/I(S) brightness "
-                      "temperatures.")
+        ds.summary = (f"{pw.capitalize()} mean surface wetness index, "
+                      "near-surface retrieval temperature, and snow frequency "
+                      "from the Basist signal-recognition decision tree applied "
+                      "to CSU SSM/I(S) brightness temperatures.")
         ds.institution = "DOC/NOAA/NCEI > National Centers for Environmental Information"
         ds.creator_name = "Hilawe Semunegus"
         ds.creator_institution = "NOAA NCEI"
