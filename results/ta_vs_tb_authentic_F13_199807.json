@@ -1,0 +1,144 @@
+{
+  "antenna_temperature": {
+    "clearly_inundated_detected_frac": 0.9631709028773686,
+    "contingency": {
+      "CSI": 0.2390209398483748,
+      "FAR": 0.7564373582039734,
+      "HSS": 0.02970007510838622,
+      "POD": 0.9276318213640886,
+      "correct_negatives": 23614,
+      "false_alarms": 156373,
+      "hits": 50350,
+      "misses": 3928,
+      "n": 234265
+    },
+    "contrast_area_weighted": 1.7887421774429533,
+    "firing_fraction": 0.8824322882206048,
+    "n_cells": 234265,
+    "pearson": 0.8636268520227897,
+    "spearman_area_weighted": 0.5448056069078661,
+    "spearman_unweighted": 0.6171336465098055
+  },
+  "brightness_temperature": {
+    "clearly_inundated_detected_frac": 0.9462057181216245,
+    "contingency": {
+      "CSI": 0.30772322241549294,
+      "FAR": 0.6817364083313309,
+      "HSS": 0.1947275365977918,
+      "POD": 0.9028335605586056,
+      "correct_negatives": 75018,
+      "false_alarms": 104969,
+      "hits": 49004,
+      "misses": 5274,
+      "n": 234265
+    },
+    "contrast_area_weighted": 4.287533854763826,
+    "firing_fraction": 0.6572599406654857,
+    "n_cells": 234265,
+    "pearson": 0.8453897934402341,
+    "spearman_area_weighted": 0.5969441190365389,
+    "spearman_unweighted": 0.6575612564354034
+  },
+  "channel_differences": {
+    "19h": {
+      "error_in_assumption": -3.206782740931357,
+      "grid_correlation_mean": 0.9973255065326078,
+      "grid_correlation_min": 0.9969552882633416,
+      "grody_assumed": 7.0,
+      "measured_tb_minus_ta": 3.793217259068643,
+      "n_days": 31
+    },
+    "19v": {
+      "error_in_assumption": -1.8008012617788003,
+      "grid_correlation_mean": 0.997424298355231,
+      "grid_correlation_min": 0.9965197824038056,
+      "grody_assumed": 7.0,
+      "measured_tb_minus_ta": 5.1991987382212,
+      "n_days": 31
+    },
+    "22v": {
+      "error_in_assumption": 0.2919318445267214,
+      "grid_correlation_mean": 0.9974793079905515,
+      "grid_correlation_min": 0.9967197651053952,
+      "grody_assumed": 6.0,
+      "measured_tb_minus_ta": 6.291931844526721,
+      "n_days": 31
+    },
+    "37h": {
+      "error_in_assumption": -1.9628346043248333,
+      "grid_correlation_mean": 0.9944506463261824,
+      "grid_correlation_min": 0.9937476792178486,
+      "grody_assumed": 4.0,
+      "measured_tb_minus_ta": 2.0371653956751667,
+      "n_days": 31
+    },
+    "37v": {
+      "error_in_assumption": 1.1235049616905952,
+      "grid_correlation_mean": 0.9947746338538321,
+      "grid_correlation_min": 0.9935452962549131,
+      "grody_assumed": 4.0,
+      "measured_tb_minus_ta": 5.123504961690595,
+      "n_days": 31
+    },
+    "85h": {
+      "error_in_assumption": -0.8250102150824761,
+      "grid_correlation_mean": 0.994254214321844,
+      "grid_correlation_min": 0.992443218194068,
+      "grody_assumed": 3.0,
+      "measured_tb_minus_ta": 2.174989784917524,
+      "n_days": 31
+    },
+    "85v": {
+      "error_in_assumption": 1.0209539859525618,
+      "grid_correlation_mean": 0.9947202505607089,
+      "grid_correlation_min": 0.9920964904469172,
+      "grody_assumed": 3.0,
+      "measured_tb_minus_ta": 4.020953985952562,
+      "n_days": 31
+    }
+  },
+  "coverage": {
+    "antenna_eligible_cells": 234736,
+    "brightness_eligible_cells": 235367,
+    "scored_intersection_cells": 234265
+  },
+  "days": [
+    "19980701",
+    "19980702",
+    "19980703",
+    "19980704",
+    "19980705",
+    "19980706",
+    "19980707",
+    "19980708",
+    "19980709",
+    "19980710",
+    "19980711",
+    "19980712",
+    "19980713",
+    "19980714",
+    "19980715",
+    "19980716",
+    "19980717",
+    "19980718",
+    "19980719",
+    "19980720",
+    "19980721",
+    "19980722",
+    "19980723",
+    "19980724",
+    "19980725",
+    "19980726",
+    "19980727",
+    "19980728",
+    "19980729",
+    "19980730",
+    "19980731"
+  ],
+  "n_common_cells": 234265,
+  "n_days": 31,
+  "note": "controlled comparison of input conventions: identical grid, identical cells, identical reference and thresholds, with only the input convention differing",
+  "offset_and_correlation_basis": "per-day means over every paired day, same pass, over cells where both gridded inputs are finite",
+  "pass": "dsc",
+  "reference": "swamps_fw_199807.nc"
+}

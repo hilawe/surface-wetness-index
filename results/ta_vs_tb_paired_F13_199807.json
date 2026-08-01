@@ -1,0 +1,116 @@
+{
+  "antenna_temperature": {
+    "clearly_inundated_detected_frac": 0.9575689123599621,
+    "contingency": {
+      "CSI": 0.23733585271133814,
+      "FAR": 0.7577755919818977,
+      "HSS": 0.026656554405985106,
+      "POD": 0.9216289959809741,
+      "correct_negatives": 23606,
+      "false_alarms": 156392,
+      "hits": 49991,
+      "misses": 4251,
+      "n": 234240
+    },
+    "contrast_area_weighted": 1.7012340233916237,
+    "firing_fraction": 0.8810749658469945,
+    "n_cells": 234240,
+    "pearson": 0.8646334338672683,
+    "spearman_area_weighted": 0.537766387504845,
+    "spearman_unweighted": 0.6120459132278288
+  },
+  "brightness_temperature": {
+    "clearly_inundated_detected_frac": 0.9470679813181111,
+    "contingency": {
+      "CSI": 0.30168464607654794,
+      "FAR": 0.6882452501240758,
+      "HSS": 0.1818335787916758,
+      "POD": 0.9032852770915527,
+      "correct_negatives": 71832,
+      "false_alarms": 108166,
+      "hits": 48996,
+      "misses": 5246,
+      "n": 234240
+    },
+    "contrast_area_weighted": 4.1558235477619245,
+    "firing_fraction": 0.6709443306010929,
+    "n_cells": 234240,
+    "pearson": 0.8803027361489143,
+    "spearman_area_weighted": 0.6019793499953272,
+    "spearman_unweighted": 0.6628847191671169
+  },
+  "channel_differences": {
+    "19h": {
+      "error_in_assumption": -3.248418323455318,
+      "grody_assumed": 7.0,
+      "measured_tb_minus_ta": 3.751581676544682,
+      "n_days": 31
+    },
+    "19v": {
+      "error_in_assumption": -1.827225685119629,
+      "grody_assumed": 7.0,
+      "measured_tb_minus_ta": 5.172774314880371,
+      "n_days": 31
+    },
+    "22v": {
+      "error_in_assumption": 0.2536471428409701,
+      "grody_assumed": 6.0,
+      "measured_tb_minus_ta": 6.25364714284097,
+      "n_days": 31
+    },
+    "37h": {
+      "error_in_assumption": -2.0630325694237985,
+      "grody_assumed": 4.0,
+      "measured_tb_minus_ta": 1.9369674305762015,
+      "n_days": 31
+    },
+    "37v": {
+      "error_in_assumption": 1.0263782470457015,
+      "grody_assumed": 4.0,
+      "measured_tb_minus_ta": 5.0263782470457015,
+      "n_days": 31
+    },
+    "85h": {
+      "error_in_assumption": -0.9264270105669574,
+      "grody_assumed": 3.0,
+      "measured_tb_minus_ta": 2.0735729894330426,
+      "n_days": 31
+    },
+    "85v": {
+      "error_in_assumption": 0.9015411946081344,
+      "grody_assumed": 3.0,
+      "measured_tb_minus_ta": 3.9015411946081344,
+      "n_days": 31
+    }
+  },
+  "contributing_days": {
+    "max": 30,
+    "mean": 17.150636099726775,
+    "min": 1,
+    "note": "identical for both arms by construction, since a day enters a cell only when both conventions retrieve there"
+  },
+  "coverage": {
+    "antenna_eligible_cells": 234334,
+    "brightness_eligible_cells": 235200,
+    "intersection_over_antenna": 0.999598863161129,
+    "intersection_over_brightness": 0.9959183673469387,
+    "intersection_over_union": 0.9955204977602489,
+    "scored_intersection_cells": 234240,
+    "union_cells": 235294
+  },
+  "days_composited": {
+    "antenna": 31,
+    "brightness": 31
+  },
+  "n_common_cells": 234240,
+  "n_days": 31,
+  "note": "controlled comparison of input conventions. Both arms are binned from matched swath granules through one geolocation, one scan-time selection, one quality screen and one set of contributing pixels per cell, and a day enters a cell only when both arms retrieve there. Only the radiometric convention differs. Neither arm reproduces the official CSU daily grid, which uses a footprint-aware resampler.",
+  "pass": "dsc",
+  "reference": "swamps_fw_199807.nc",
+  "supersedes": "ta_vs_tb_authentic_F13_199807.json",
+  "wet_frequency_on_scored_cells": {
+    "antenna_mean": 0.6692960858345032,
+    "brightness_mean": 0.38397055864334106,
+    "note": "fraction of a cell's contributing days on which the index fired, carried so a frequency-based monthly operating point can be tested without regridding"
+  }
+}

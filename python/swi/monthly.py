@@ -71,12 +71,17 @@ class Accumulator:
         }
 
 
-def composite(files, engine, pass_list=("asc", "dsc")):
+def composite(files, engine, pass_list=("asc", "dsc"), sensor=None):
     """Composite a month of CSU daily files. Returns {pass: result dict}.
 
     engine : object with evaluate_kelvin (e.g. core_numpy or a calibrated wrapper).
     Files that fail to read or that lack required channels for a pass are skipped
     for that pass (and counted in n_skipped).
+
+    sensor : name the channel family explicitly when a file carries more than
+    one, as the paired antenna and brightness grids do. Left at None the reader
+    detects it, which picks the first family present and so cannot reach the
+    second arm of a paired file.
     """
     from . import io_csu_grid as io
 
@@ -88,7 +93,8 @@ def composite(files, engine, pass_list=("asc", "dsc")):
         for p in pass_list:
             try:
                 with np.errstate(divide="ignore", invalid="ignore"):
-                    r = io.evaluate_file(f, pass_=p, engine=engine)
+                    r = io.evaluate_file(f, pass_=p, engine=engine,
+                                        sensor=sensor)
             except Exception:
                 skipped[p] += 1
                 continue
