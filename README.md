@@ -17,9 +17,13 @@ NCDC stopped after Basist left the agency.
 
 This repository revives the algorithm on the modern SSM/I and Special Sensor
 Microwave Imager/Sounder (SSMIS) record, on the Colorado State University (CSU)
-Brightness Temperature Fundamental Climate Data Record, so the index can run
-continuously from 1987 to the present on the same intercalibrated input that
-NOAA stewards. The original C decision tree builds as a shared library that
+Brightness Temperature Fundamental Climate Data Record, whose intercalibrated
+input spans 1987 to the present under NOAA stewardship. That span is the input
+record's, not yet a demonstrated product capability. The validated results so
+far cover single months on SSMIS and SSM/I and a multiyear single-sensor
+temporal comparison, and a continuous multidecade product would additionally
+need early-sensor reconstruction, cross-sensor continuity, and multiyear
+validation. The original C decision tree builds as a shared library that
 serves as the reference oracle, and a vectorized NumPy port reproduces it cell
 for cell at zero mismatches over fifteen million tested cells. Of the 42
 instrumented conditions in the tree, 38 are satisfiable and all 38 are
