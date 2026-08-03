@@ -53,6 +53,26 @@ def test_cell_index_places_corners_and_wraps_longitude():
     assert ilon[3] == 0                    # 360.125 wraps to the first
 
 
+def test_cell_index_keeps_both_poles_and_rejects_beyond():
+    """The latitude interval is closed at both ends.
+
+    The last row spans 89.75 to 90.0, so a pixel at exactly 90.0 belongs to
+    row 719 (from the geometry, (90 - -90) / 0.25 = 720 rows, indexed to 719),
+    the same way -90.0 belongs to row 0. Flooring alone maps 90.0 to 720 and
+    dropped it silently. Values past the pole and non-finite values must stay
+    rejected, so the fold applies to the single boundary value only.
+    """
+    lat = np.array([90.0, -90.0, 90.0001, 89.9999, np.nan])
+    lon = np.array([10.0, 10.0, 10.0, 10.0, 10.0])
+    ilat, _, ok = tdr._cell_index(lat, lon)
+
+    assert bool(ok[0]) and ilat[0] == 719  # exact north pole, last row
+    assert bool(ok[1]) and ilat[1] == 0    # exact south pole, first row
+    assert not ok[2]                       # beyond the pole stays rejected
+    assert bool(ok[3]) and ilat[3] == 719
+    assert not ok[4]                       # non-finite stays rejected
+
+
 # --------------------------------------------------------------------------
 # Scan-time selection, which is the defect this module had
 # --------------------------------------------------------------------------
@@ -658,3 +678,14 @@ def test_real_crossing_granule_belongs_almost_entirely_to_the_next_day():
     assert n15 > 0 and n16 > 0
     # 20 scans on the 15th against 1585 on the 16th, so the 16th holds the bulk.
     assert n16 > 50 * n15
+
+
+def test_the_accumulator_refuses_an_index_outside_the_grid():
+    """numpy applies a negative flat index silently from the array's end, so
+    the in-grid property must be asserted, not assumed. This pins the backstop
+    for any caller that skips the _cell_index mask."""
+    acc = tdr._Accumulator()
+    with pytest.raises(AssertionError):
+        acc.add(0, 0, np.array([-1]), np.array([0]), np.array([200.0]))
+    with pytest.raises(AssertionError):
+        acc.add(0, 0, np.array([tdr.NLAT]), np.array([0]), np.array([200.0]))

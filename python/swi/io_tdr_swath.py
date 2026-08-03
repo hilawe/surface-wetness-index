@@ -91,6 +91,12 @@ def _cell_index(lat, lon):
     safe_lon = np.where(ok, lon, 0.0)
     ilat = np.floor((safe_lat - LAT0) / DLAT).astype(np.int64)
     ilon = np.floor((np.mod(safe_lon, 360.0) - LON0) / DLON).astype(np.int64)
+    # The grid's latitude interval is closed at both poles. Flooring maps the
+    # exact north pole to row NLAT, past the last row, so fold that single
+    # boundary value back rather than silently dropping it. Longitude needs no
+    # counterpart, since np.mod already folds 360.0 onto 0.0. Only the exact
+    # value moves; anything above 90.0 stays rejected by the range check below.
+    ilat = np.where(safe_lat == 90.0, NLAT - 1, ilat)
     ok &= (ilat >= 0) & (ilat < NLAT) & (ilon >= 0) & (ilon < NLON)
     return ilat, ilon, ok
 
@@ -161,6 +167,13 @@ class _Accumulator:
 
     def add(self, p, ch, ilat, ilon, values):
         flat = ilat * NLON + ilon
+        # A negative index would not raise here, numpy indexes it silently
+        # from the array's end, so the in-grid property has to be asserted
+        # rather than assumed. Callers screen with the _cell_index mask, and
+        # this is the backstop for the caller that forgets.
+        assert flat.size == 0 or (flat.min() >= 0
+                                  and flat.max() < NLAT * NLON), \
+            "pixel index outside the grid reached the accumulator"
         np.add.at(self.total[p, :, :, ch].reshape(-1), flat, values)
         np.add.at(self.count[p, :, :, ch].reshape(-1), flat, 1)
 
