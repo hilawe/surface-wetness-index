@@ -12,7 +12,7 @@ a 42-node decision tree and retrieves three quantities: a 0 to 100 wetness index
 (WET), a near-surface temperature (RTEMP), and a snow and ice
 flag derived from microwave scattering (SNOW). Through the 2000s the index was a
 widely cited detector of surface wetness and inundation in the BAMS State of the
-Climate reports and in agricultural and hydrological monitoring; development at
+Climate reports and in agricultural and hydrological monitoring. Development at
 NCDC stopped after Basist left the agency.
 
 This repository reconstructs the algorithm on the modern SSM/I and Special Sensor
@@ -27,7 +27,7 @@ validation. The original C decision tree builds as a shared library that
 serves as the reference oracle, and a vectorized NumPy port reproduces it cell
 for cell at zero mismatches over fifteen million tested cells. Of the 42
 instrumented conditions in the tree, 38 are satisfiable and all 38 are
-exercised; the remaining four are provably unreachable in the recovered source
+exercised. The remaining four are provably unreachable in the recovered source
 and are reported rather than repaired. The product writers emit daily, weekly, and monthly Climate and
 Forecast (CF) compliant NetCDF files, and the index has been validated against
 references that span the modern record, two physically independent and
@@ -35,6 +35,35 @@ two sharing the index's microwave measurement family: ESA Climate Change
 Initiative soil moisture, ERA5-Land soil moisture, U.S. Climate Reference
 Network in-situ measurements, and Surface Water Microwave Product Series
 inundation fraction.
+
+## Selected results
+
+One month of the reconstructed product from SSMIS, July 2023, showing the three
+outputs the decision tree returns for every land cell. Only the wetness index is
+validated here. The retrieval temperature and the snow flag are reproduced as
+algorithm outputs and are not evaluated as products:
+
+![Reconstructed monthly product](docs/figures/fig_product.png)
+
+The wetness index beside the Surface Water Microwave Product Series inundation
+fraction for the same month, co-located over land. High index values fall where
+the reference places surface water, with an area-weighted rank correlation of
+0.57 and index values about 4.2 times higher in inundated cells than in dry
+ones. The index fires on more cells than the reference calls inundated, so the
+false alarm ratio at this untuned operating point is near 0.70:
+
+![Wetness index and SWAMPS inundation](docs/figures/fig_swamps.png)
+
+The preregistered transfer test, in which the months, references, statistics and
+thresholds were fixed in writing before the reference data was obtained. The
+result holds across a sensor change, a satellite change and 18 years, and the
+1998 arm needs no spectral adjustment because SSM/I measures 85.5 GHz directly:
+
+![Preregistered transfer between sensor eras](docs/figures/fig_transfer.png)
+
+A plain-language guide to the whole reconstruction, with these and the other
+figures explained, is in
+[docs/Plain_Explainer_Surface_Wetness_Index.md](docs/Plain_Explainer_Surface_Wetness_Index.md).
 
 ## Principal Investigator
 
