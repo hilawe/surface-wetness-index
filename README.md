@@ -15,7 +15,7 @@ widely cited detector of surface wetness and inundation in the BAMS State of the
 Climate reports and in agricultural and hydrological monitoring; development at
 NCDC stopped after Basist left the agency.
 
-This repository revives the algorithm on the modern SSM/I and Special Sensor
+This repository reconstructs the algorithm on the modern SSM/I and Special Sensor
 Microwave Imager/Sounder (SSMIS) record, on the Colorado State University (CSU)
 Brightness Temperature Fundamental Climate Data Record, whose intercalibrated
 input spans 1987 to the present under NOAA stewardship. That span is the input

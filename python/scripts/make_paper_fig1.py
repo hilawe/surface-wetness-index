@@ -1,4 +1,4 @@
-"""Regenerable Figure 1 for the revival paper: the three-panel monthly product.
+"""Regenerable Figure 1 for the reconstruction paper: the three-panel monthly product.
 
     python -m scripts.make_paper_fig1 MONTHLY_PRODUCT.nc [--pass dsc] [--out F.png]
 

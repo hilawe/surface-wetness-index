@@ -53,9 +53,9 @@ int sig_recog(int hour, int P1, int P2, int P3, int P4, int P5, int P6, int P7)
   int CONTAM;  
   float tt;
   int scat, lime, nop, wets;
-  int save_P1;            /* REVIVAL FIX: declaration lost in 2004 streamlining */
+  int save_P1;            /* RECONSTRUCTION FIX: declaration lost in 2004 streamlining */
 
-  /*  ORBITAL GAP  */     /* REVIVAL FIX: malformed comment from Word extraction */
+  /*  ORBITAL GAP  */     /* RECONSTRUCTION FIX: malformed comment from Word extraction */
 
   /*TEST 1  */
   if(P1 < 100)

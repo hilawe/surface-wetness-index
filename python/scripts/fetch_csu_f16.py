@@ -7,7 +7,7 @@ set: days 1, 5, 9, ...) of CSU SSMIS FCDR-GRID F-16 files from NCEI (open HTTPS,
 no authentication) into DIR (default ../data/f16_<YEAR>/), W files at a time.
 Cached files are kept; server gaps are reported, not fatal.
 
-F-16 is the operational current-data satellite for the revival and is present in
+F-16 is the operational current-data satellite for the reconstruction and is present in
 FCDR-GRID for all years except 2024 (which holds only F-18). FCDR-GRID is the
 reprocessed, citable tree (1987 to 2025); for 2025 or later, use ICDR-GRID.
 """

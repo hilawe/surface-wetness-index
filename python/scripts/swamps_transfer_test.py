@@ -1,7 +1,7 @@
 """Preregistered SSM/I-era inundation transfer test.
 
 Runs the analysis fixed in `docs/Preregistration_SSMI_Era_SWAMPS_Test.md`: the
-revived wetness index for a true-85 GHz SSM/I month against SWAMPS fractional
+reconstructed wetness index for a true-85 GHz SSM/I month against SWAMPS fractional
 surface water, with every threshold carried over unchanged from the published
 July 2016 analysis rather than retuned. The point is to test whether the single
 published month transfers to the other sensor era, so nothing here is fitted.
@@ -117,7 +117,7 @@ def main():
         "contrast_by_zone": zones,
     }
 
-    print(f"\n{label}: revived index vs SWAMPS fractional water, land only "
+    print(f"\n{label}: reconstructed index vs SWAMPS fractional water, land only "
           f"(n={s['n']:,})")
     print(f"  Spearman  area-weighted {sp_w:+.3f}   unweighted {s['spearman_r']:+.3f}")
     print(f"  Pearson   area-weighted {pe_w:+.3f}   unweighted {s['pearson_r']:+.3f}")

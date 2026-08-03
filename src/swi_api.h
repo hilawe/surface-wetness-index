@@ -7,7 +7,7 @@ extern "C" {
 
 /*
  * Batch wrapper around the Basist signal-recognition decision tree
- * (sig_recog in sig_recog.c). Added for the revival: lets Python (or any
+ * (sig_recog in sig_recog.c). Added for the reconstruction: lets Python (or any
  * caller) evaluate many grid cells through the original C engine, which serves
  * as the exact reference oracle for the vectorized NumPy port.
  *
