@@ -122,3 +122,24 @@ def land_mask(lat, lon):
         return globe.is_land(lat2d, lon2d)
     except Exception:
         return _np.ones((lat.size, lon.size), dtype=bool)
+
+
+def check_grid(lat, lon, lat0, lon0):
+    """Enforce the fixed-CSU-grid invariant across a multi-day run.
+
+    The screen workers cache cell masks and per-cell pool accumulators from the
+    first usable day and reuse them for the rest of the month. That reuse is
+    valid only because every CSU grid in this record
+    shares one geometry. This makes the invariant enforcing rather than
+    assumed: it returns the reference grid to keep (the first day's), and
+    raises if a later day's grid differs, so a reordered or off-grid day fails
+    loudly instead of being paired with the first day's stale cached arrays
+    (round-three review, minor 8).
+    """
+    if lat0 is None:
+        return np.asarray(lat), np.asarray(lon)
+    if not (np.array_equal(lat, lat0) and np.array_equal(lon, lon0)):
+        raise ValueError("CSU grid mismatch: a later day's lat/lon differ from "
+                         "the first day's cached grid, so cached cell masks and "
+                         "atlas values no longer align")
+    return lat0, lon0

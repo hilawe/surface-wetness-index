@@ -54,3 +54,24 @@ def test_resolution_is_a_free_choice():
         # uniform input -> every populated cell gives the same result
         assert np.unique(res.snow).size == 1
         assert np.unique(res.temp).size == 1
+
+
+def test_check_grid_enforces_the_fixed_grid_invariant():
+    """The workers cache cell masks and the atlas from the first day and reuse
+    them all month; check_grid makes that invariant fail loudly if a later day
+    arrives on a different grid, rather than silently pairing it with stale
+    cached arrays (round-three review, minor 8)."""
+    from swi import grids
+    lat = np.linspace(-89.875, 89.875, 720)
+    lon = np.linspace(0.125, 359.875, 1440)
+    # First day: returns the reference grid to cache.
+    lat0, lon0 = grids.check_grid(lat, lon, None, None)
+    assert np.array_equal(lat0, lat) and np.array_equal(lon0, lon)
+    # Same grid on a later day: accepted, reference unchanged.
+    assert grids.check_grid(lat, lon, lat0, lon0)[0] is lat0
+    # A reordered longitude vector (same shape) must be rejected, not accepted.
+    with pytest.raises(ValueError, match="grid mismatch"):
+        grids.check_grid(lat, lon[::-1], lat0, lon0)
+    # A different latitude grid must be rejected too.
+    with pytest.raises(ValueError, match="grid mismatch"):
+        grids.check_grid(np.linspace(-89.5, 89.5, 720), lon, lat0, lon0)

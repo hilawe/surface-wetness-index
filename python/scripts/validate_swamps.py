@@ -13,7 +13,7 @@ import sys
 
 import numpy as np
 
-from swi import grids, validate as val
+from swi import figcache, grids, validate as val
 
 
 def load_swamps_fw(path):
@@ -47,6 +47,14 @@ def read_product(path, pass_="dsc"):
 
 
 def main():
+    if "--from-cache" in sys.argv:
+        cpath = sys.argv[sys.argv.index("--from-cache") + 1]
+        out = sys.argv[sys.argv.index("--png") + 1] if "--png" in sys.argv else None
+        arrays, _ = figcache.load(cpath)
+        _map(arrays["lat"], arrays["lon"], arrays["wet"], arrays["fw"],
+             arrays["mask"], out)
+        return 0
+
     if len(sys.argv) < 3:
         print(__doc__)
         return 1
@@ -98,7 +106,20 @@ def main():
               f"{z['mean_lo']:.4f}, n_wet={z['n_hi']:,})")
 
     if png:
-        _map(plat, plon, wet, fw_on, m, png)
+        # Plot the float32-stored arrays so a --from-cache redraw is identical,
+        # and save the cache only after a successful render.
+        stored = figcache.as_stored(lat=plat, lon=plon, wet=wet, fw=fw_on, mask=m)
+        _map(stored["lat"], stored["lon"], stored["wet"], stored["fw"],
+             stored["mask"], png)
+        if "--no-cache" not in sys.argv:
+            figcache.save(figcache.cache_path("fig_swamps"), {
+                "figure": "fig_swamps",
+                "script": "python/scripts/validate_swamps.py",
+                "built_from": os.path.basename(product),
+                "product_sha256": figcache.sha256(product),
+                "swamps_file": os.path.basename(swamps),
+                "swamps_sha256": figcache.sha256(swamps),
+            }, **stored)
     return 0
 
 
@@ -106,17 +127,28 @@ def _map(lat, lon, wet, fw, mask, out):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    # Author at the ~6.5 in text width so titles/labels land >= 8 pt on the page
+    # after the figure-to-page reduction (paper-figure-standards.md, section 2).
+    w = 6.5; sc = w / 6.5
+    tsz, tick, plab = 10 * sc, 9 * sc, 12 * sc
     roll = lon.size // 2; ext = [-180, 180, lat.min(), lat.max()]
     v = lambda a: np.roll(np.where(mask, a, np.nan), roll, axis=1)
-    fig, ax = plt.subplots(2, 1, figsize=(11, 8))
-    for a, (img, t, cm, lo, hi) in zip(ax, [
+    fig, ax = plt.subplots(2, 1, figsize=(w, 4.8))
+    for a, letter, (img, ttl, cm, lo, hi) in zip(ax, ("(a)", "(b)"), [
             (v(wet), "SWI WET", "YlGnBu", 0, 100),
             (v(fw), "SWAMPS fractional surface water", "Blues", 0, 0.5)]):
         im = a.imshow(img, origin="lower", extent=ext, aspect="auto", cmap=cm,
                       vmin=lo, vmax=hi)
-        a.set_title(t); fig.colorbar(im, ax=a, shrink=0.85)
-    fig.suptitle("Surface Wetness Index vs SWAMPS inundation (co-located land)")
-    fig.tight_layout(); fig.savefig(out, dpi=110); print(f"wrote {out}")
+        a.set_title(ttl, fontsize=tsz, pad=4)
+        a.tick_params(labelsize=tick)
+        cb = fig.colorbar(im, ax=a, shrink=0.85); cb.ax.tick_params(labelsize=tick)
+        a.text(0.015, 0.96, letter, transform=a.transAxes, fontsize=plab,
+               fontweight="bold", va="top", ha="left",
+               bbox=dict(boxstyle="round,pad=0.15", facecolor="white",
+                         alpha=0.75, edgecolor="none"))
+    fig.suptitle("Surface Wetness Index vs SWAMPS inundation (co-located land)",
+                 fontsize=tsz * 1.1)
+    fig.tight_layout(); fig.savefig(out, dpi=150); print(f"wrote {out}")
 
 
 if __name__ == "__main__":

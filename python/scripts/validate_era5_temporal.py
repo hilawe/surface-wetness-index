@@ -20,6 +20,7 @@ import sys
 
 import numpy as np
 
+from swi import figcache
 from swi import validate as val
 from swi.io_era5 import load_swvl1
 
@@ -39,6 +40,14 @@ def read_product(path, pass_="dsc"):
 
 
 def main():
+    if "--from-cache" in sys.argv:
+        cpath = sys.argv[sys.argv.index("--from-cache") + 1]
+        out = sys.argv[sys.argv.index("--out") + 1] if "--out" in sys.argv \
+            else sys.argv[sys.argv.index("--from-cache") + 2]
+        arrays, _ = figcache.load(cpath)
+        _map(arrays["lat"], arrays["lon"], arrays["r"], out)
+        return 0
+
     if len(sys.argv) < 4:
         print(__doc__)
         return 1
@@ -51,6 +60,8 @@ def main():
         args = args[:i] + args[i + 2:]
     if "--json" in args:
         i = args.index("--json"); json_out = args[i + 1]; args = args[:i] + args[i + 2:]
+    no_cache = "--no-cache" in args
+    args = [a for a in args if a != "--no-cache"]
     out_png = args[0]
     products = sorted(args[1:])
 
@@ -106,24 +117,42 @@ def main():
             json.dump(res, f, indent=2, sort_keys=True)
         print(f"wrote {json_out}")
 
-    _map(plat, plon, r, out_png, months)
+    # Plot the float32-stored arrays so a --from-cache redraw is identical,
+    # and save the cache only after a successful render.
+    stored = figcache.as_stored(lat=plat, lon=plon, r=r)
+    _map(stored["lat"], stored["lon"], stored["r"], out_png)
+    if not no_cache:
+        figcache.save(figcache.cache_path("fig_temporal"), {
+            "figure": "fig_temporal",
+            "script": "python/scripts/validate_era5_temporal.py",
+            "months": months,
+            "n_months": len(products),
+            "min_valid_months_per_cell": int(min_n),
+        }, **stored)
     return 0
 
 
-def _map(lat, lon, r, out, months):
+def _map(lat, lon, r, out):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    # Author at the ~6.5 in text width so titles/labels land >= 8 pt on the page
+    # after the figure-to-page reduction (paper-figure-standards.md, section 2).
+    w = 6.5; sc = w / 6.5
+    tsz, lab, tick = 10 * sc, 10 * sc, 9 * sc
     roll = lon.size // 2
     img = np.roll(r, roll, axis=1)
-    fig, ax = plt.subplots(figsize=(11, 5))
+    fig, ax = plt.subplots(figsize=(w, 3.0))
     im = ax.imshow(img, origin="lower", extent=[-180, 180, lat.min(), lat.max()],
                    aspect="auto", cmap="RdBu_r", vmin=-1, vmax=1)
-    ax.set_title(f"WET vs ERA5-Land soil moisture, per-cell temporal correlation "
-                 f"({months[0]} to {months[-1]}), seasonal cycle retained")
-    ax.set_xlabel("longitude"); ax.set_ylabel("latitude")
-    fig.colorbar(im, ax=ax, shrink=0.85, label="per-cell temporal correlation r")
-    fig.tight_layout(); fig.savefig(out, dpi=110)
+    ax.set_title("WET vs ERA5-Land soil moisture, per-cell temporal correlation\n"
+                 "(seasonal cycle retained)", fontsize=tsz, pad=4)
+    ax.set_xlabel("longitude", fontsize=lab); ax.set_ylabel("latitude", fontsize=lab)
+    ax.tick_params(labelsize=tick)
+    cb = fig.colorbar(im, ax=ax, shrink=0.85, label="per-cell temporal correlation r")
+    cb.set_label("per-cell temporal correlation r", fontsize=lab)
+    cb.ax.tick_params(labelsize=tick)
+    fig.tight_layout(); fig.savefig(out, dpi=150)
     print(f"wrote {out}")
 
 
