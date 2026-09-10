@@ -124,7 +124,7 @@ its own synthetic input and always runs.
 
 ## Scientific and engineering highlights
 
-- A faithful modern reimplementation of an empirical algorithm whose original
+- A modern reimplementation of an empirical algorithm whose original
   source had drifted across two decades, validated to a zero-mismatch
   regression against the original C decision tree on fifteen million tested
   cells, exercising all 38 satisfiable conditions of the 42 instrumented.
