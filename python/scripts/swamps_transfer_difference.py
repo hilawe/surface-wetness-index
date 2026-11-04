@@ -10,7 +10,7 @@ replicate from each file, and the percentile interval of those differences is
 the interval for the difference of the two area-weighted Spearman correlations.
 
 This statistic was added after the preregistered comparison was run and is
-labelled post hoc in its output.
+labeled post hoc in its output.
 """
 
 import json

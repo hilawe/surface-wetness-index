@@ -6,7 +6,7 @@ Each input is either a daily tar of orbit granules as delivered by NOAA CLASS,
 or a directory of already-extracted granules. One gridded NetCDF is written per
 day, named for the satellite and date, in the layout described in
 `swi/io_tdr_swath.py`. Tars are extracted to a temporary directory and removed
-afterwards, so no unpacked copy of the archive is left behind.
+afterward, so no unpacked copy of the archive is left behind.
 
 A day is built from the granules that fall in it by scan time, not from the
 archive that carries its date. CLASS files a granule under the day it starts, so
@@ -86,7 +86,7 @@ def extract(source, workdir):
 
 
 class GranuleCache:
-    """Extract each archive once, since neighbouring days reuse it."""
+    """Extract each archive once, since neighboring days reuse it."""
 
     def __init__(self, workdir):
         self.workdir = workdir
@@ -139,7 +139,7 @@ def main():
         print(__doc__)
         return 1
 
-    # Keyed by satellite as well as date. Neighbouring archives are offered to
+    # Keyed by satellite as well as date. Neighboring archives are offered to
     # each day, so keying on the date alone would let one satellite's orbits be
     # binned into another's grid and the output would carry whichever satellite
     # happened to win the mapping.

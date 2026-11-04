@@ -55,7 +55,7 @@ def touches_day(path, date):
     the target cannot reach back into it, and one filed on the day before
     reaches in only when it crosses midnight. Used to decide whether a granule
     without a counterpart in the other product actually costs this day any
-    coverage, rather than reporting every neighbouring granule as a loss.
+    coverage, rather than reporting every neighboring granule as a loss.
     """
     m = SPAN.search(os.path.basename(path))
     if not m:

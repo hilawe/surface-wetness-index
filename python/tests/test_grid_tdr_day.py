@@ -77,7 +77,7 @@ def test_shift_day_crosses_month_and_year_boundaries():
 # Granule selection, which is the defect this driver had
 # --------------------------------------------------------------------------
 
-def test_a_day_is_built_from_the_neighbouring_archives(tmp_path, monkeypatch):
+def test_a_day_is_built_from_the_neighboring_archives(tmp_path, monkeypatch):
     d15, d16 = _archives(tmp_path)
     out = str(tmp_path / "out")
 
@@ -132,7 +132,7 @@ def test_the_short_day_is_the_one_the_old_selection_produced(tmp_path,
 
 def test_a_granule_that_contributes_nothing_is_not_recorded(tmp_path,
                                                             monkeypatch):
-    """Neighbouring archives are offered, so provenance must list contributors."""
+    """Neighboring archives are offered, so provenance must list contributors."""
     d15, d16 = _archives(tmp_path)
     d17 = tmp_path / "CSU_SSMI_TDRBASE_V01R04_F13_D19980717"
     d17.mkdir()
@@ -144,7 +144,7 @@ def test_a_granule_that_contributes_nothing_is_not_recorded(tmp_path,
     _run(monkeypatch, [d15, d16, str(d17), "--out", out])
 
     _, sources16 = _read(os.path.join(out, "SWI_TDRGRID_F13_D19980716.nc"))
-    assert far not in sources16               # offered as a neighbour, unused
+    assert far not in sources16               # offered as a neighbor, unused
     assert LATER_NC in sources16
 
 
@@ -154,7 +154,7 @@ def test_a_granule_that_contributes_nothing_is_not_recorded(tmp_path,
 
 def test_one_satellite_never_reaches_into_another_satellites_grid(tmp_path,
                                                                   monkeypatch):
-    """Neighbouring archives are offered, so the satellite has to be matched.
+    """Neighboring archives are offered, so the satellite has to be matched.
 
     Keying the archive map on the date alone let an F-13 orbit be binned into an
     F-16 day, and the output still carried the F-16 label.

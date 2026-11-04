@@ -7,7 +7,7 @@ Record (TDR) or brightness temperature from the Fundamental Climate Data Record
 obvious route, comparing a self-gridded antenna field against the official CSU
 brightness grid, does not give that. The official grid uses a footprint-aware
 resampler with one common support across channels, while binning footprint
-centres reaches roughly a quarter fewer cells at the low frequencies and gives
+centers reaches roughly a quarter fewer cells at the low frequencies and gives
 each channel its own support. The difference between the two arms would then
 carry the gridding operator as well as the convention.
 

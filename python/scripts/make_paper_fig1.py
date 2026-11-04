@@ -4,7 +4,7 @@
     python -m scripts.make_paper_fig1 --from-cache CACHE.npz [--out F.png]
 
 Panels: wetness index, near-surface temperature (RTEMP), and snow frequency.
-The temperature panel is labelled as a near-surface temperature, matching the
+The temperature panel is labeled as a near-surface temperature, matching the
 paper's finding that the historical land-skin-temperature label appears wrong.
 Older products carry the variable as land_skin_temperature_mean and newer ones
 as retrieval_temperature_mean; both are read.

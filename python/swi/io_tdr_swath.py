@@ -45,9 +45,9 @@ Gridding choices, and why:
   of a day live in the previous day's archive. Every daily archive inspected
   ends with such a granule, and the missing window runs from 1 to 100 minutes
   depending on orbit phase. `grid_day` therefore expects the caller to offer the
-  neighbouring days' granules as well and lets the time filter select from the
+  neighboring days' granules as well and lets the time filter select from the
   union. Feeding it a single archive silently produces a short day.
-- Because granules from neighbouring days are routinely offered, a granule whose
+- Because granules from neighboring days are routinely offered, a granule whose
   scan times cannot be read is skipped rather than binned whole. Binning it
   whole would import a foreign orbit into the day, which is a worse failure than
   losing one granule.
@@ -203,7 +203,7 @@ class DayReport(NamedTuple):
     `complete` deliberately depends on measured temporal coverage rather than on
     the absence of refusals. A day can lose most of its data without any input
     being refused, for instance when the target archive is empty and only a
-    neighbour's midnight tail reaches the day, so a flag that meant only "nothing
+    neighbor's midnight tail reaches the day, so a flag that meant only "nothing
     was refused" told a consumer almost nothing.
     """
 
@@ -240,13 +240,13 @@ def add_granule(acc, path, day=None, require_time=True, rejected=None):
 
     `day` is a YYYYMMDD string. When given, only scans whose UTC time falls in
     that day are binned, so a granule spanning midnight contributes to each day
-    only where it belongs, and a granule offered from a neighbouring day's
+    only where it belongs, and a granule offered from a neighboring day's
     archive contributes only its scans that reach into this day.
 
     With `day` given and `require_time` left true, a swath is refused unless its
     scan times can be read, its scan count lines up with those times, and its
     quality flags are present and correctly shaped. Refusing is the safe choice
-    because neighbouring archives are routinely offered, so binning a swath that
+    because neighboring archives are routinely offered, so binning a swath that
     cannot be placed would import a foreign orbit. Callers that already know a
     granule belongs to the day can pass `require_time=False` to bin it whole.
 
@@ -342,7 +342,7 @@ def grid_day(paths, day=None, require_time=True):
     `paths` should carry the target day's granules and those of the day before,
     because the granule holding the first minutes of a day is filed under the
     previous day. The scan-time filter selects from the union, so offering a
-    neighbour costs only the read.
+    neighbor costs only the read.
 
     The same file offered twice is read once. Granule identity across different
     archives is the caller's business, since only the caller knows whether two

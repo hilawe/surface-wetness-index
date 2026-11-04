@@ -9,7 +9,7 @@ download is not staged.
 The gridder's central requirement is that a UTC day is assembled from the scans
 that fall in it rather than from the archive that carries its date. CLASS files
 a granule under the day it starts, so the orbit crossing midnight into a day
-sits in the previous day's archive. Several tests below pin that behaviour,
+sits in the previous day's archive. Several tests below pin that behavior,
 since gridding a day from its own archive alone silently drops the first minutes
 of every day.
 """
