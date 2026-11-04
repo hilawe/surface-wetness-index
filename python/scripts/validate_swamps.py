@@ -9,6 +9,7 @@ inundated surface water.
 """
 
 import os
+import re
 import sys
 
 import numpy as np
@@ -50,9 +51,9 @@ def main():
     if "--from-cache" in sys.argv:
         cpath = sys.argv[sys.argv.index("--from-cache") + 1]
         out = sys.argv[sys.argv.index("--png") + 1] if "--png" in sys.argv else None
-        arrays, _ = figcache.load(cpath)
+        arrays, meta = figcache.load(cpath)
         _map(arrays["lat"], arrays["lon"], arrays["wet"], arrays["fw"],
-             arrays["mask"], out)
+             arrays["mask"], out, _wet_label(meta.get("built_from")))
         return 0
 
     if len(sys.argv) < 3:
@@ -110,7 +111,7 @@ def main():
         # and save the cache only after a successful render.
         stored = figcache.as_stored(lat=plat, lon=plon, wet=wet, fw=fw_on, mask=m)
         _map(stored["lat"], stored["lon"], stored["wet"], stored["fw"],
-             stored["mask"], png)
+             stored["mask"], png, _wet_label(product))
         if "--no-cache" not in sys.argv:
             figcache.save(figcache.cache_path("fig_swamps"), {
                 "figure": "fig_swamps",
@@ -123,7 +124,24 @@ def main():
     return 0
 
 
-def _map(lat, lon, wet, fw, mask, out):
+def _wet_label(product_name):
+    """Panel (a) title, in the same form the other validators use.
+
+    Figure 3 labeled this panel "SWI WET" while the ESA CCI, SMAP and ERA5
+    figures labeled the same quantity "SWI WET (F-16, YYYYMM)". A reader
+    meeting both in adjacent figures has to work out they are the same thing,
+    so the sensor and month are carried here too, derived from the product the
+    figure was built from rather than hardcoded, because this script also draws
+    the F-13 1998 comparison.
+    """
+    m = re.match(r"SWI_(F\d+)_(\d{6})_", os.path.basename(product_name or ""))
+    if not m:
+        return "SWI WET"
+    sat, ym = m.group(1), m.group(2)
+    return f"SWI WET ({sat[0]}-{sat[1:]}, {ym})"
+
+
+def _map(lat, lon, wet, fw, mask, out, wet_label="SWI WET"):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -135,7 +153,7 @@ def _map(lat, lon, wet, fw, mask, out):
     v = lambda a: np.roll(np.where(mask, a, np.nan), roll, axis=1)
     fig, ax = plt.subplots(2, 1, figsize=(w, 4.8))
     for a, letter, (img, ttl, cm, lo, hi) in zip(ax, ("(a)", "(b)"), [
-            (v(wet), "SWI WET", "YlGnBu", 0, 100),
+            (v(wet), wet_label, "YlGnBu", 0, 100),
             (v(fw), "SWAMPS fractional surface water", "Blues", 0, 0.5)]):
         im = a.imshow(img, origin="lower", extent=ext, aspect="auto", cmap=cm,
                       vmin=lo, vmax=hi)
