@@ -1,0 +1,19 @@
+{
+  "cells": 5000000,
+  "comparison": "float32-exact for RTEMP and WET with NaN treated as equal to NaN, integer-exact for SNOW and the return code",
+  "mismatches": {
+    "ret": 0,
+    "rtemp": 0,
+    "snow": 0,
+    "total_cells_mismatching": 0,
+    "wet": 0
+  },
+  "numpy_version": "2.4.6",
+  "reference_engine": "compiled shared library from src/sig_recog.c",
+  "sample_construction": "one third physically structured, one third wet-surface targeted near the WET = 0 boundary, one third raw uniform over the full packed byte domain",
+  "seed": 777,
+  "source_sha256": {
+    "src/sig_recog.c": "d3c0074b91f637b8cee7ae96dea4037d6bf12119224600eb98d580792b6205ea",
+    "src/swi_api.c": "049db3f3e02e964fd97d707422699bcbea0a70ffe7b28b92d5e830f3304313c9"
+  }
+}

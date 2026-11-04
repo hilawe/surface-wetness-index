@@ -1,0 +1,8 @@
+{
+  "built_from": "SWI_BASIST_F16_202307_monthly_v0cal.nc",
+  "figure": "fig_smap",
+  "month": "202307",
+  "product_sha256": "9bb4096b326440e0687b27fa9d4a998782ab0a0cbb27b8d71f38908a6b5a78be",
+  "reference": "SMAP SPL3SMP_E 006 AM",
+  "script": "python/scripts/validate_smap.py"
+}

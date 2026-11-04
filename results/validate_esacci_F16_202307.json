@@ -1,0 +1,60 @@
+{
+  "categorical_vs_sm_tercile": {
+    "CSI": 0.3639280938939236,
+    "FAR": 0.5887724952994896,
+    "HSS": 0.17876354940193073,
+    "POD": 0.7598486258452758,
+    "correct_negatives": 59001.0,
+    "false_alarms": 70144.0,
+    "hits": 48992.0,
+    "misses": 15484.0,
+    "n": 193621.0
+  },
+  "cci_coverage_cells": 193774,
+  "contrast_bootstrap_spatial_blocks": {
+    "block_deg": 10.0,
+    "hi": 1.5621309651801996,
+    "lo": 1.3010951628987757,
+    "n_blocks": 263,
+    "n_draws": 2000,
+    "seed": 20260731
+  },
+  "contrast_by_zone": {
+    "high latitudes": {
+      "mean_hi": 0.2011106877234933,
+      "mean_lo": 0.23210279836830244,
+      "n_hi": 38220,
+      "n_lo": 14153,
+      "ratio": 0.8664724817508205
+    },
+    "midlatitudes": {
+      "mean_hi": 0.22900530502207422,
+      "mean_lo": 0.15159676557292603,
+      "n_hi": 52743,
+      "n_lo": 41024,
+      "ratio": 1.5106213127740553
+    },
+    "tropics": {
+      "mean_hi": 0.24890701894907336,
+      "mean_lo": 0.11602806984480075,
+      "n_hi": 28173,
+      "n_lo": 19308,
+      "ratio": 2.1452310572951148
+    }
+  },
+  "detection_contrast": {
+    "mean_hi": 0.22476274788832443,
+    "mean_lo": 0.15767371401938265,
+    "n_hi": 119136,
+    "n_lo": 74485,
+    "ratio": 1.425492824128533
+  },
+  "month": "202307",
+  "n_cells": 193621,
+  "pattern_correlation": 0.13418831859886018,
+  "pearson": 0.13418831859886018,
+  "product": "SWI_BASIST_F16_202307_monthly_v0cal.nc",
+  "reference": "ESA CCI COMBINED v09.2",
+  "spearman": 0.35283551960931514,
+  "spearman_among_firing": 0.017218772011897594
+}

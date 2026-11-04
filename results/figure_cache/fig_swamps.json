@@ -1,0 +1,8 @@
+{
+  "built_from": "SWI_F16_201607_monthly_v0cal.nc",
+  "figure": "fig_swamps",
+  "product_sha256": "158b417a2650cf4efe9943a41f13ea2059637fde6551a261733b465f22171570",
+  "script": "python/scripts/validate_swamps.py",
+  "swamps_file": "swamps_fw_201607.nc",
+  "swamps_sha256": "db5f69370bd9bf12c1270860ca538cbe594d65e8faeeb3e91e3506bbd912ce68"
+}

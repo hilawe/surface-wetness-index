@@ -1,0 +1,80 @@
+{
+  "categorical_vs_sm_tercile": {
+    "CSI": 0.4704615933783995,
+    "FAR": 0.49600869960086996,
+    "HSS": 0.3761055097574044,
+    "POD": 0.8761087683582958,
+    "correct_negatives": 54914.0,
+    "false_alarms": 41507.0,
+    "hits": 42175.0,
+    "misses": 5964.0,
+    "n": 144560.0
+  },
+  "contrast_bootstrap_spatial_blocks": {
+    "block_deg": 10.0,
+    "hi": 2.29507349092946,
+    "lo": 1.8695049953473384,
+    "n_blocks": 239,
+    "n_draws": 2000,
+    "seed": 20260731
+  },
+  "contrast_by_zone": {
+    "high latitudes": {
+      "mean_hi": 0.22032221851186715,
+      "mean_lo": 0.18311490893252413,
+      "n_hi": 21064,
+      "n_lo": 6097,
+      "ratio": 1.2031910443351912
+    },
+    "midlatitudes": {
+      "mean_hi": 0.1824751016538168,
+      "mean_lo": 0.09022378924749493,
+      "n_hi": 38081,
+      "n_lo": 34482,
+      "ratio": 2.0224721570190898
+    },
+    "tropics": {
+      "mean_hi": 0.21005719518109459,
+      "mean_lo": 0.08168080989902146,
+      "n_hi": 24537,
+      "n_lo": 20299,
+      "ratio": 2.5716835501604285
+    }
+  },
+  "detection_contrast": {
+    "mean_hi": 0.20008932572084182,
+    "mean_lo": 0.09667839056365118,
+    "n_hi": 83682,
+    "n_lo": 60878,
+    "ratio": 2.0696385671532966
+  },
+  "domain_check": {
+    "note": "spatial support and quality retention are separate; only the second is a property of the screen",
+    "quality_firing_available": 154410,
+    "quality_firing_kept": 83682,
+    "quality_quiet_available": 78432,
+    "quality_quiet_kept": 60878,
+    "quality_retention_firing": 0.5419467651058869,
+    "quality_retention_quiet": 0.7761882904936761,
+    "quality_retention_ratio": 0.6982155898811544,
+    "spatial_support_firing": 0.4590084988362034,
+    "spatial_support_quiet": 0.3990678647386256
+  },
+  "ingest": {
+    "fine_kept_by_screen": 13396919,
+    "fine_numeric_values": 24699684,
+    "fine_successful_retrievals": 22835965,
+    "kept_fraction_of_successful": 0.5866587639278655,
+    "n_days_used": 31,
+    "screen": "recommended",
+    "target_cells_with_data": 145183
+  },
+  "month": "202307",
+  "n_cells": 144560,
+  "pattern_correlation": 0.2832783414028345,
+  "pearson": 0.2832783414028345,
+  "product": "SWI_BASIST_F16_202307_monthly_v0cal.nc",
+  "reference": "SMAP SPL3SMP_E 006 AM (L-band)",
+  "spearman": 0.6180214568478931,
+  "spearman_among_firing": 0.30176764631692976
+}

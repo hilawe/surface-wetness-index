@@ -1,0 +1,32 @@
+{
+  "grody_offsets_k": [
+    7.0,
+    7.0,
+    6.0,
+    4.0,
+    4.0,
+    3.0,
+    3.0
+  ],
+  "n_days": 31,
+  "note": "first-order Ta approximation only: fixed Grody and Basist (1996) per-channel offsets subtracted from Tb; no 85-to-91 calibration in either run",
+  "reference": "../data/swamps/swamps_fw_201607.nc",
+  "ta_equivalent": {
+    "inund_detect": 96.63412847199776,
+    "mean_wet": 10.535588264465332,
+    "n": 249281,
+    "n_wet": 225386,
+    "ratio": 1.6805368118662232,
+    "spearman": 0.6438690838913965,
+    "wet_frac": 0.9041443190616212
+  },
+  "tb_baseline": {
+    "inund_detect": 95.58924731182795,
+    "mean_wet": 9.610532760620117,
+    "n": 250085,
+    "n_wet": 170708,
+    "ratio": 5.34084700203932,
+    "spearman": 0.677479522389601,
+    "wet_frac": 0.6825999160285503
+  }
+}

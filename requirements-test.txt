@@ -3,3 +3,4 @@ scipy
 netCDF4
 pytest
 global-land-mask
+h5py

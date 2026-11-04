@@ -1,0 +1,146 @@
+{
+  "coverage_matched": {
+    "ESA_CCI": {
+      "contrast": 0.9654841774503448,
+      "mean_ref_where_firing": 0.1974947002696987,
+      "mean_ref_where_quiet": 0.20455508736688327,
+      "n": 27473,
+      "pearson": -0.11486376341435911,
+      "spearman": -0.16948998698704418
+    },
+    "SMAP": {
+      "contrast": 1.2812450866869343,
+      "mean_ref_where_firing": 0.2136566692051188,
+      "mean_ref_where_quiet": 0.1667570642222683,
+      "n": 27473,
+      "pearson": 0.3969618461239321,
+      "spearman": 0.5251183375809507
+    },
+    "min_days": 20,
+    "n_cells": 27473,
+    "note": "at least 20 valid days in BOTH references; a monthly spatial association is not contemporaneous detection"
+  },
+  "ingest": {
+    "fine_kept_by_screen": 13396919,
+    "fine_numeric_values": 24699684,
+    "fine_successful_retrievals": 22835965,
+    "kept_fraction_of_successful": 0.5866587639278655,
+    "n_days_used": 31,
+    "screen": "recommended",
+    "target_cells_with_data": 145183
+  },
+  "matched_domain": {
+    "ESA_CCI": {
+      "ci95": [
+        1.4794365361200172,
+        1.7668642132678902
+      ],
+      "contrast": 1.6135051028608516,
+      "mean_ref_where_firing": 0.21464870749411596,
+      "mean_ref_where_quiet": 0.1330325557158323,
+      "n": 138120,
+      "n_blocks": 235,
+      "pearson": 0.1922948178169325,
+      "spearman": 0.5085102459146507
+    },
+    "SMAP": {
+      "ci95": [
+        1.8700995987018842,
+        2.3130017513052814
+      ],
+      "contrast": 2.0764449455491607,
+      "mean_ref_where_firing": 0.19886547757839326,
+      "mean_ref_where_quiet": 0.09577209258769873,
+      "n": 138120,
+      "n_blocks": 235,
+      "pearson": 0.326147338212948,
+      "spearman": 0.629843411478397
+    },
+    "n_cells": 138120,
+    "paired": {
+      "difference": [
+        0.3602770893910759,
+        0.5728635092714612
+      ],
+      "n_blocks": 235,
+      "point_difference": 0.4629398426883091,
+      "point_ratio": 1.2869156359453007,
+      "ratio": [
+        1.2312589789175565,
+        1.3431132456316177
+      ]
+    }
+  },
+  "month": "202307",
+  "own_domain": {
+    "ESA_CCI": {
+      "ci95": [
+        1.3010951628987757,
+        1.5621309651801996
+      ],
+      "contrast": 1.425492824128533,
+      "mean_ref_where_firing": 0.22476274788832443,
+      "mean_ref_where_quiet": 0.15767371401938265,
+      "n": 193621,
+      "n_blocks": 263,
+      "pearson": 0.13418831859886018,
+      "spearman": 0.35283551960931514
+    },
+    "SMAP": {
+      "ci95": [
+        1.8695049953473384,
+        2.29507349092946
+      ],
+      "contrast": 2.0696385671532966,
+      "mean_ref_where_firing": 0.20008932572084182,
+      "mean_ref_where_quiet": 0.09667839056365118,
+      "n": 144560,
+      "n_blocks": 239,
+      "pearson": 0.2832783414028345,
+      "spearman": 0.6180214568478931
+    }
+  },
+  "prereg": {
+    "expectation": "SMAP contrast BELOW the ESA CCI value and above 1.0",
+    "outcome": "NOT CONFIRMED. The SMAP contrast is higher on matched cells and the paired interval on the difference excludes zero.",
+    "source": "docs/SMAP_Comparison_Scope.md, recorded before any number existed",
+    "what_it_does_not_show": "the direction or magnitude of shared-channel bias, and not that reference quality caused the difference"
+  },
+  "product": "SWI_BASIST_F16_202307_monthly_v0cal.nc",
+  "robustness": {
+    "cci_on_relaxed_intersection": {
+      "contrast": 1.4235825290475634,
+      "mean_ref_where_firing": 0.22441998206214067,
+      "mean_ref_where_quiet": 0.15764451830712412,
+      "n": 192109,
+      "pearson": 0.13059772584414242,
+      "spearman": 0.35266119909130017
+    },
+    "note": "the ordering must survive relaxing the screen and changing the regrid",
+    "smap_nearest_neighbour_regrid": {
+      "contrast": 2.08513304905363,
+      "mean_ref_where_firing": 0.1948024231927878,
+      "mean_ref_where_quiet": 0.09342445714972572,
+      "n": 130247,
+      "pearson": 0.3129109625464406,
+      "spearman": 0.6277034340407243
+    },
+    "smap_relaxed_on_cci_intersection": {
+      "contrast": 1.8997974014130647,
+      "mean_ref_where_firing": 0.2356735221713083,
+      "mean_ref_where_quiet": 0.12405192363986543,
+      "n": 192109,
+      "pearson": 0.35279109834125394,
+      "spearman": 0.5650035959186113
+    },
+    "smap_relaxed_screen_successful": {
+      "contrast": 1.9428883254239313,
+      "mean_ref_where_firing": 0.2534477483218962,
+      "mean_ref_where_quiet": 0.1304489532441834,
+      "n": 232842,
+      "pearson": 0.27362735587022935,
+      "spearman": 0.5261172305451874
+    }
+  },
+  "seed": 20260731
+}

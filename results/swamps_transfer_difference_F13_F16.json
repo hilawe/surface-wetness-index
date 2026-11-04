@@ -1,0 +1,20 @@
+{
+  "a": {
+    "label": "F13_199807_SSMI_31day",
+    "spearman_area_weighted": 0.5967284098497013
+  },
+  "b": {
+    "label": "F16_201607_SSMIS_31day",
+    "spearman_area_weighted": 0.5690072694001419
+  },
+  "difference_ci_95": {
+    "hi": 0.11997549178162398,
+    "lo": -0.06629127272667175,
+    "n_pairs": 4000000,
+    "pairing": "all cross pairs of the two draw sets"
+  },
+  "frac_gt_0": 0.713973,
+  "note": "post hoc; not part of the preregistered comparison",
+  "point_difference_a_minus_b": 0.027721140449559423,
+  "spans_zero": true
+}

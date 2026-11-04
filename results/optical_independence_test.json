@@ -1,0 +1,291 @@
+{
+  "frozen_thresholds": {
+    "inundated": 0.05,
+    "wet": 0.0
+  },
+  "pooled": {
+    "optical_block_bootstrap_ci": {
+      "frac_gt_0": 1.0,
+      "hi": 0.8512797075825921,
+      "lo": 0.5427378088155101,
+      "n_blocks": 5,
+      "n_draws": 500
+    },
+    "optical_vs_swamps_spearman": 0.33803141467777315,
+    "ratio_optical_to_swamps_area_weighted": 1.983940156544481,
+    "vs_optical": {
+      "contingency": {
+        "CSI": 0.19255748639634895,
+        "FAR": 0.8074087078651685,
+        "HSS": 0.11440598987488755,
+        "POD": 0.9990892531876139,
+        "correct_negatives": 2122,
+        "false_alarms": 4599,
+        "hits": 1097,
+        "misses": 1,
+        "n": 7819
+      },
+      "contrast": 71.59212926308541,
+      "contrast_area_weighted": 76.70487528272504,
+      "label": "JRC optical",
+      "n": 7819,
+      "pearson": 0.6580160738738632,
+      "spearman": 0.7596976468913657,
+      "spearman_area_weighted": 0.7597078328996583
+    },
+    "vs_swamps": {
+      "contingency": {
+        "CSI": 0.17504687233679905,
+        "FAR": 0.8196980337078652,
+        "HSS": 0.05993083861839198,
+        "POD": 0.8572621035058431,
+        "correct_negatives": 1952,
+        "false_alarms": 4669,
+        "hits": 1027,
+        "misses": 171,
+        "n": 7819
+      },
+      "contrast": 2.3841965174162354,
+      "contrast_area_weighted": 2.0875293608456222,
+      "label": "SWAMPS microwave",
+      "n": 7819,
+      "pearson": 0.8077225068260602,
+      "spearman": 0.4321647343678081,
+      "spearman_area_weighted": 0.38292880477951313
+    }
+  },
+  "product": "SWI_F16_201607_monthly_full.nc",
+  "reference_swamps": "swamps_fw_201607.nc",
+  "tiles": {
+    "0E_30N": {
+      "n_cells": 1600,
+      "note": "Sahara (arid)",
+      "optical_vs_swamps_spearman": 0.13237492420410263,
+      "vs_optical": {
+        "contingency": {
+          "CSI": 0.0,
+          "FAR": 1.0,
+          "HSS": 0.0,
+          "POD": NaN,
+          "correct_negatives": 1590,
+          "false_alarms": 10,
+          "hits": 0,
+          "misses": 0,
+          "n": 1600
+        },
+        "contrast": 0.9367311167133731,
+        "contrast_area_weighted": 0.9152379079335604,
+        "label": "JRC optical",
+        "n": 1600,
+        "pearson": 0.002986931508087226,
+        "spearman": 0.004693379745928052,
+        "spearman_area_weighted": 0.0042635106732282005
+      },
+      "vs_swamps": {
+        "contingency": {
+          "CSI": 0.0,
+          "FAR": 1.0,
+          "HSS": -0.011946591707659873,
+          "POD": 0.0,
+          "correct_negatives": 1420,
+          "false_alarms": 10,
+          "hits": 0,
+          "misses": 170,
+          "n": 1600
+        },
+        "contrast": 0.29198767338414466,
+        "contrast_area_weighted": 0.2974780679681688,
+        "label": "SWAMPS microwave",
+        "n": 1600,
+        "pearson": -0.03625841786688178,
+        "spearman": -0.010940384469200072,
+        "spearman_area_weighted": -0.010429840581009616
+      }
+    },
+    "100W_50N": {
+      "n_cells": 1587,
+      "note": "North American prairie pothole (temperate)",
+      "optical_vs_swamps_spearman": 0.6697323491685665,
+      "vs_optical": {
+        "contingency": {
+          "CSI": 0.2045598480050665,
+          "FAR": 0.7954401519949335,
+          "HSS": 0.002586017093332778,
+          "POD": 1.0,
+          "correct_negatives": 8,
+          "false_alarms": 1256,
+          "hits": 323,
+          "misses": 0,
+          "n": 1587
+        },
+        "contrast": 33.68690850452239,
+        "contrast_area_weighted": 32.26080420422283,
+        "label": "JRC optical",
+        "n": 1587,
+        "pearson": 0.6567573896170318,
+        "spearman": 0.5840272741588265,
+        "spearman_area_weighted": 0.5777469431399529
+      },
+      "vs_swamps": {
+        "contingency": {
+          "CSI": 0.1317289423685877,
+          "FAR": 0.8682710576314123,
+          "HSS": 0.0015272325105949538,
+          "POD": 1.0,
+          "correct_negatives": 8,
+          "false_alarms": 1371,
+          "hits": 208,
+          "misses": 0,
+          "n": 1587
+        },
+        "contrast": NaN,
+        "contrast_area_weighted": NaN,
+        "label": "SWAMPS microwave",
+        "n": 1587,
+        "pearson": 0.9007520019013063,
+        "spearman": 0.7037334478451575,
+        "spearman_area_weighted": 0.6998221915353975
+      }
+    },
+    "60E_70N": {
+      "n_cells": 1511,
+      "note": "Western Siberia (boreal)",
+      "optical_vs_swamps_spearman": 0.7088805614613627,
+      "vs_optical": {
+        "contingency": {
+          "CSI": 0.3414826498422713,
+          "FAR": 0.6582478295185478,
+          "HSS": 0.14197646306755388,
+          "POD": 0.9976958525345622,
+          "correct_negatives": 243,
+          "false_alarms": 834,
+          "hits": 433,
+          "misses": 1,
+          "n": 1511
+        },
+        "contrast": 29.92825413632381,
+        "contrast_area_weighted": 29.90410884093962,
+        "label": "JRC optical",
+        "n": 1511,
+        "pearson": 0.6287653441650026,
+        "spearman": 0.715692685583245,
+        "spearman_area_weighted": 0.7138905445357517
+      },
+      "vs_swamps": {
+        "contingency": {
+          "CSI": 0.31176006314127863,
+          "FAR": 0.6882399368587214,
+          "HSS": 0.12762587794103625,
+          "POD": 1.0,
+          "correct_negatives": 244,
+          "false_alarms": 872,
+          "hits": 395,
+          "misses": 0,
+          "n": 1511
+        },
+        "contrast": 491.1881129202931,
+        "contrast_area_weighted": 498.80027859574926,
+        "label": "SWAMPS microwave",
+        "n": 1511,
+        "pearson": 0.8318856115820229,
+        "spearman": 0.9273060129836507,
+        "spearman_area_weighted": 0.9299844024903553
+      }
+    },
+    "70W_0N": {
+      "n_cells": 1600,
+      "note": "Amazon (humid tropics, dense canopy)",
+      "optical_vs_swamps_spearman": 0.5507683493838983,
+      "vs_optical": {
+        "contingency": {
+          "CSI": 0.13504823151125403,
+          "FAR": 0.864951768488746,
+          "HSS": 0.00870606660831913,
+          "POD": 1.0,
+          "correct_negatives": 45,
+          "false_alarms": 1345,
+          "hits": 210,
+          "misses": 0,
+          "n": 1600
+        },
+        "contrast": 20.15443757335856,
+        "contrast_area_weighted": 20.22014633057783,
+        "label": "JRC optical",
+        "n": 1600,
+        "pearson": 0.7042960631501644,
+        "spearman": 0.5577296230032353,
+        "spearman_area_weighted": 0.5578589782043538
+      },
+      "vs_swamps": {
+        "contingency": {
+          "CSI": 0.07138263665594856,
+          "FAR": 0.9286173633440514,
+          "HSS": 0.004305310745176461,
+          "POD": 1.0,
+          "correct_negatives": 45,
+          "false_alarms": 1444,
+          "hits": 111,
+          "misses": 0,
+          "n": 1600
+        },
+        "contrast": 1401.2423603937643,
+        "contrast_area_weighted": 1418.4299151228258,
+        "label": "SWAMPS microwave",
+        "n": 1600,
+        "pearson": 0.9332281816717736,
+        "spearman": 0.8092852277353265,
+        "spearman_area_weighted": 0.8095524628274353
+      }
+    },
+    "90E_30N": {
+      "n_cells": 1521,
+      "note": "Ganges and Brahmaputra, Southeast Asia (humid tropics)",
+      "optical_vs_swamps_spearman": 0.2759450246771537,
+      "vs_optical": {
+        "contingency": {
+          "CSI": 0.10194552529182879,
+          "FAR": 0.8980544747081712,
+          "HSS": 0.03402848328018906,
+          "POD": 1.0,
+          "correct_negatives": 236,
+          "false_alarms": 1154,
+          "hits": 131,
+          "misses": 0,
+          "n": 1521
+        },
+        "contrast": 10.315446477316096,
+        "contrast_area_weighted": 10.44579341009714,
+        "label": "JRC optical",
+        "n": 1521,
+        "pearson": 0.6829970047115649,
+        "spearman": 0.4691375020924393,
+        "spearman_area_weighted": 0.47148237970162415
+      },
+      "vs_swamps": {
+        "contingency": {
+          "CSI": 0.24339035769828926,
+          "FAR": 0.756420233463035,
+          "HSS": 0.08932748097192844,
+          "POD": 0.9968152866242038,
+          "correct_negatives": 235,
+          "false_alarms": 972,
+          "hits": 313,
+          "misses": 1,
+          "n": 1521
+        },
+        "contrast": 11.198994519821962,
+        "contrast_area_weighted": 11.282947313656749,
+        "label": "SWAMPS microwave",
+        "n": 1521,
+        "pearson": 0.9156216078569318,
+        "spearman": 0.7429183545941322,
+        "spearman_area_weighted": 0.745305171472454
+      }
+    }
+  },
+  "within_tile_median": {
+    "ratio": 0.7484973934934945,
+    "vs_optical": 0.5578589782043538,
+    "vs_swamps": 0.745305171472454
+  }
+}

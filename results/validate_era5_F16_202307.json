@@ -1,0 +1,35 @@
+{
+  "categorical_vs_sm_tercile": {
+    "CSI": 0.35810056148259706,
+    "FAR": 0.5682452441595476,
+    "HSS": 0.20338481082786986,
+    "POD": 0.6773314724888159,
+    "correct_negatives": 116320.0,
+    "false_alarms": 93257.0,
+    "hits": 70857.0,
+    "misses": 33755.0,
+    "n": 314189.0
+  },
+  "contrast_bootstrap_spatial_blocks": {
+    "block_deg": 10.0,
+    "hi": 1.5262312970220107,
+    "lo": 1.3044862608167493,
+    "n_blocks": 399,
+    "n_draws": 2000,
+    "seed": 20260731
+  },
+  "detection_contrast": {
+    "mean_hi": 0.2847811594093892,
+    "mean_lo": 0.20242293526088517,
+    "n_hi": 164114,
+    "n_lo": 150075,
+    "ratio": 1.4068621178838243
+  },
+  "month": "202307",
+  "n_cells": 314189,
+  "pattern_correlation": 0.06158298841974379,
+  "pearson": 0.06158298841974379,
+  "product": "SWI_BASIST_F16_202307_monthly_v0cal.nc",
+  "reference": "ERA5-Land swvl1",
+  "spearman": 0.25632405010218395
+}

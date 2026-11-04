@@ -1,0 +1,44 @@
+{
+  "difference_uscrn_minus_era5": {
+    "ci_station_blocks": {
+      "frac_gt_0": 0.8485,
+      "hi": 0.23255497304547523,
+      "lo": -0.0712175851857166,
+      "n_blocks": 111,
+      "n_draws": 2000
+    },
+    "point": 0.07933229135973519,
+    "spans_zero": true
+  },
+  "era5_land": {
+    "ci_station_blocks": {
+      "frac_gt_1": 1.0,
+      "hi": 1.491939487246596,
+      "lo": 1.127545422205954,
+      "n_blocks": 111,
+      "n_draws": 2000
+    },
+    "contrast": 1.3012823250022088,
+    "mean_hi": 0.29426851257421255,
+    "mean_lo": 0.2261373315538679,
+    "n_hi": 629
+  },
+  "n_months": 12,
+  "n_station_months": 1077,
+  "n_stations": 111,
+  "note": "post hoc matched-support comparison of two soil-moisture references over identical station-months. USCRN is a point measurement and ERA5-Land a cell average, a scale difference this design does not remove.",
+  "seed": 20260731,
+  "uscrn": {
+    "ci_station_blocks": {
+      "frac_gt_1": 1.0,
+      "hi": 1.5818087035785802,
+      "lo": 1.1998516821997047,
+      "n_blocks": 111,
+      "n_draws": 2000
+    },
+    "contrast": 1.380614616361944,
+    "mean_hi": 0.2120909263543509,
+    "mean_lo": 0.15362065839432545,
+    "n_hi": 629
+  }
+}

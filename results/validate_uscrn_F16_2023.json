@@ -1,0 +1,47 @@
+{
+  "categorical_vs_sm_tercile": {
+    "CSI": 0.3482849604221636,
+    "FAR": 0.5969465648854961,
+    "HSS": 0.1571765331881404,
+    "POD": 0.7193460490463215,
+    "correct_negatives": 345.0,
+    "false_alarms": 391.0,
+    "hits": 264.0,
+    "misses": 103.0,
+    "n": 1103.0
+  },
+  "contrast_bootstrap_station_blocks": {
+    "hi": 1.5952899778062617,
+    "lo": 1.2086284513375565,
+    "n_blocks": 115,
+    "n_draws": 2000,
+    "seed": 20260731
+  },
+  "detection_contrast": {
+    "mean_hi": 0.21375531038229462,
+    "mean_lo": 0.15362065839432545,
+    "n_hi": 655,
+    "n_lo": 448,
+    "ratio": 1.391448992710413
+  },
+  "n_months": 12,
+  "n_station_months": 1103,
+  "n_stations": 115,
+  "pearson": 0.05858142561164842,
+  "products": [
+    "SWI_F16_202301_monthly.nc",
+    "SWI_F16_202302_monthly.nc",
+    "SWI_F16_202303_monthly.nc",
+    "SWI_F16_202304_monthly.nc",
+    "SWI_F16_202305_monthly.nc",
+    "SWI_F16_202306_monthly.nc",
+    "SWI_F16_202307_monthly.nc",
+    "SWI_F16_202308_monthly.nc",
+    "SWI_F16_202309_monthly.nc",
+    "SWI_F16_202310_monthly.nc",
+    "SWI_F16_202311_monthly.nc",
+    "SWI_F16_202312_monthly.nc"
+  ],
+  "reference": "USCRN 5 cm soil moisture, point to pixel",
+  "spearman": 0.25445413714586246
+}

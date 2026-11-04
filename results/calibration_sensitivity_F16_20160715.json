@@ -1,0 +1,64 @@
+{
+  "baseline_firing_fraction": 0.28676552614384293,
+  "bias_perturbation": {
+    "+1.0K": {
+      "classification_flip_frac": 0.06079226512714996,
+      "firing_fraction": 0.34684272558381113,
+      "firing_fraction_shift": 0.06069637827363711,
+      "invalidated_frac": 0.002792873193198298
+    },
+    "+3.0K": {
+      "classification_flip_frac": 0.2007234286034387,
+      "firing_fraction": 0.48691386478127086,
+      "firing_fraction_shift": 0.20049935779706385,
+      "invalidated_frac": 0.004282936779869002
+    },
+    "-1.0K": {
+      "classification_flip_frac": 0.04705331821904159,
+      "firing_fraction": 0.23812674221123165,
+      "firing_fraction_shift": -0.04702104570997501,
+      "invalidated_frac": 0.012378683325630687
+    },
+    "-3.0K": {
+      "classification_flip_frac": 0.11954133802005792,
+      "firing_fraction": 0.1658170556392132,
+      "firing_fraction_shift": -0.11924272996019983,
+      "invalidated_frac": 0.06603690895472437
+    },
+    "denominator": "firing fractions are conditional on baseline-valid cells that remain valid under the offset; the invalidated fraction is recorded per offset"
+  },
+  "calibration": "f15_f16_2006_dsc_v0.json",
+  "file": "CSU_SSMIS_FCDR-GRID_V02R00_F16_D20160715.nc",
+  "n_valid_land_cells": 250996,
+  "paired_residual_perturbation": {
+    "changed_or_invalidated_frac_mean": 0.09962851997641396,
+    "draws": 25,
+    "firing_fraction_shift_mean": 0.017256958891401712,
+    "invalidated_frac_mean": 0.0313587467529363,
+    "mean_abs_wet_change": 0.47211582681387765,
+    "n_residual_pairs": 921552,
+    "residual_vh_correlation": 0.8878638218211492,
+    "seed": 20260730,
+    "snow_flag_change_frac_mean": 0.02554323302697419,
+    "wet_classification_flip_frac_max": 0.07179065174456879,
+    "wet_classification_flip_frac_mean": 0.07047994208584947
+  },
+  "pass": "dsc",
+  "random_perturbation": {
+    "changed_or_invalidated_frac_mean": 0.2317315016972382,
+    "denominator": "flip fractions are over baseline-valid cells that remain valid under the perturbation, and the invalidated fraction is reported separately. changed_or_invalidated_frac_mean is the fraction of baseline-valid cells that fail to reproduce their classification by either route, over one denominator",
+    "draws": 25,
+    "firing_fraction_shift_mean": 0.05196873965862066,
+    "invalidated_frac_mean": 0.13849160942803868,
+    "mean_abs_wet_change": 0.7257490352808834,
+    "seed": 20260729,
+    "snow_flag_change_frac_mean": 0.03778553626992302,
+    "wet_classification_flip_frac_max": 0.10950355921235093,
+    "wet_classification_flip_frac_mean": 0.10822863109849878
+  },
+  "residual_rms_k": {
+    "85h": 3.227203709981517,
+    "85v": 2.850375472347888
+  },
+  "sensor": "ssmis"
+}
