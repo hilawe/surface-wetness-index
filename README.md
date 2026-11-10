@@ -36,6 +36,14 @@ Initiative soil moisture, ERA5-Land soil moisture, U.S. Climate Reference
 Network in-situ measurements, and Surface Water Microwave Product Series
 inundation fraction.
 
+## Publication status
+
+A manuscript reporting this reconstruction and its validation is under review at
+the American Meteorological Society's Journal of Atmospheric and Oceanic
+Technology, submitted November 2026. It has not been peer reviewed, and no
+result here should be cited as reviewed work. This note will be replaced by the
+citation if and when the paper is accepted.
+
 ## Selected results
 
 One month of the reconstructed product from SSMIS, July 2023, showing the three
