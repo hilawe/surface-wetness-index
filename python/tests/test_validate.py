@@ -219,20 +219,9 @@ def test_block_ids_separate_distant_points():
     assert ids[0] == ids[1]      # same 10-degree block
     assert ids[2] != ids[0]
 
-
-def test_the_swamps_panel_label_matches_the_other_validators():
-    """Figure 3's panel (a) must name the same quantity the same way.
-
-    The ESA CCI, SMAP and ERA5 figures label it "SWI WET (F-16, YYYYMM)" while
-    this one said plain "SWI WET", so a reader meeting Figures 3 and 4 had to
-    work out they showed the same field. The sensor and month are derived from
-    the product the figure was built from, not hardcoded, because this script
-    also draws the F-13 1998 comparison.
-    """
-    from scripts.validate_swamps import _wet_label
-    assert _wet_label("SWI_F16_201607_monthly_v0cal.nc") == "SWI WET (F-16, 201607)"
-    assert _wet_label("SWI_F13_199807_monthly_v0cal.nc") == "SWI WET (F-13, 199807)"
-    # An unrecognizable name must not produce a half-built label naming the
-    # wrong sensor; it falls back to the bare quantity.
-    for junk in ("", None, "odd_name.nc", "SWI_F16_monthly.nc"):
-        assert _wet_label(junk) == "SWI WET"
+# The SWAMPS figure-label regression used to live here. It checks a figure
+# driver that ships in only one published subset, while this file, covering
+# the shared metrics, ships in every subset and failed where that driver is
+# absent. It moved to tests/test_validate_swamps_figure.py, which travels
+# with the driver, so it stays a hard requirement wherever that driver ships
+# rather than becoming a skip that also passes when the driver is broken.

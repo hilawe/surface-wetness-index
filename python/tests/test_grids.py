@@ -75,3 +75,22 @@ def test_check_grid_enforces_the_fixed_grid_invariant():
     # A different latitude grid must be rejected too.
     with pytest.raises(ValueError, match="grid mismatch"):
         grids.check_grid(np.linspace(-89.5, 89.5, 720), lon, lat0, lon0)
+
+
+def test_the_grids_entry_point_returns_the_shared_land_mask():
+    """grids.land_mask is a re-export and must stay identical to its source.
+
+    The function itself moved to swi.landmask, because a published subset
+    that does not carry this module could not reach it here. Roughly half the
+    validation drivers still call it as grids.land_mask, so that name has to
+    keep working and keep agreeing. The assertion lives in this file, and not
+    beside the other land-mask tests, because those ship in every subset and
+    so cannot import this module at all.
+    """
+    from swi import grids, landmask
+
+    lat = np.array([-10.0, 0.0, 10.0, 40.0])
+    lon = np.array([0.0, 90.0, 190.0, 350.0])
+    assert np.array_equal(grids.land_mask(lat, lon),
+                          landmask.land_mask(lat, lon))
+    assert grids.land_mask is landmask.land_mask
