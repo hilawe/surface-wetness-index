@@ -101,3 +101,12 @@ def test_proven_dead_branches_are_never_reached():
         core_numpy.evaluate_packed(block, trace=trace)
     for name in PROVEN_UNREACHABLE:
         assert trace.get(name, 0) == 0, f"{name} was proven dead but fired"
+
+
+def test_the_reader_defaults_to_this_engine_where_it_is_carried():
+    """`io_csu_grid.evaluate_file` loads its default engine on first use and
+    not with the module, so that the reader imports in a tree that carries no
+    engine. Where the engine is carried, the default has to be this module."""
+    from swi import core_numpy as engine, io_csu_grid
+
+    assert io_csu_grid._default_engine() is engine
