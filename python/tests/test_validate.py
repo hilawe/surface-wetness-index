@@ -219,9 +219,4 @@ def test_block_ids_separate_distant_points():
     assert ids[0] == ids[1]      # same 10-degree block
     assert ids[2] != ids[0]
 
-# The SWAMPS figure-label regression used to live here. It checks a figure
-# driver that ships in only one published subset, while this file, covering
-# the shared metrics, ships in every subset and failed where that driver is
-# absent. It moved to tests/test_validate_swamps_figure.py, which travels
-# with the driver, so it stays a hard requirement wherever that driver ships
-# rather than becoming a skip that also passes when the driver is broken.
+# This file tests the shared numerical metrics and regridding functions.
