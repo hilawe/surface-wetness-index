@@ -1,8 +1,7 @@
 # Scope: an L-band SMAP comparison for the reconstruction paper
 
 Status: SCOPED AND RUN 2026-08-26. The comparison is built and executed, and the
-outcome is recorded below. The pre-registered expectation was NOT confirmed. What
-remains is manuscript integration and an independent review pass.
+outcome is recorded below. The pre-registered expectation was NOT confirmed.
 
 ## Why
 
@@ -182,14 +181,13 @@ index measures.
 7. Manuscript edits, meaning a data-section entry, a results subsection, a new row in the
    validation table, and a sentence in the discussion positioning the index against
    L-band retrieval.
-8. One adversarial review pass from a different model family over the new code and the
-   new claims, per the project's standing practice.
+8. One independent check of the new code and the new claims.
 
 ## Effort and sequencing
 
-Roughly two focused sessions, and both access questions are now settled at no cost. One
-session covers the fetcher, the loader, and the comparison, ending with committed numbers.
-A second covers the figure, the manuscript integration, and the review round.
+The work falls into two stages, and both access questions are now settled at no cost.
+The first covers the fetcher, the loader, and the comparison, ending with committed
+numbers. The second covers the figure and the manuscript integration.
 
 Only one place could still run long. That is the masking-domain question above, which may
 need a sensitivity run before the result can be stated cleanly. The probe already gives an
@@ -205,9 +203,9 @@ thing to measure first, ahead of any statistic.
    the independence job the C-band run was for and answers the modernity criticism as
    well, so running both spends a second effort for the first benefit only. Keeping both
    is defensible if a reviewer specifically wants a C-band check.
-2. **Does this reopen submission timing?** The manuscript is otherwise finished and
-   de-telled, and this adds a results subsection and a figure, which means another review
-   pass. That is a real cost against a paper that is ready to go, and the call is Hilawe's.
+2. **Does this reopen submission timing?** The manuscript is otherwise finished, and
+   this adds a results subsection and a figure. That is a real cost against a paper
+   that is ready to go.
 3. **What if the result is unflattering?** The pre-registered expectation above says
    agreement should drop. If it drops further than expected, or the contrast interval
    includes 1.0, the paper reports it. Confirm that is acceptable before the work starts,

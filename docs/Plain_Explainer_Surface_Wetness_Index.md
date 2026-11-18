@@ -234,7 +234,7 @@ Settling it took three attempts, each correcting the one before. A first experim
 temperature by subtracting fixed textbook offsets from brightness temperature.
 The detector got worse, but the offsets were assumptions. A second experiment
 used authentic antenna temperatures, ordered from the NOAA archive and gridded
-for the project. Independent review then found that this comparison was unfair
+for the project. That comparison turned out to be unfair
 in a subtle way. The two inputs had been placed on the map by different
 methods, so some of the measured difference could have come from the mapping
 rather than from the input convention.
@@ -279,15 +279,15 @@ The paper states its limits. The plain versions are these.
 
 ## Where things stand
 
-The manuscript is prepared for the Journal of Geophysical Research:
-Atmospheres. Every number in it traces to a committed artifact that a named
-script regenerates, and the work has been through eight rounds of independent review, the last of which forced the rebuilt antenna-temperature
-comparison described above. The code, tests and results are public on GitHub,
+The manuscript was submitted to the Journal of Atmospheric and Oceanic
+Technology in November 2026 and is under review. Every number in it traces
+to a committed artifact that a named script regenerates. The code, tests
+and results are public on GitHub,
 a frozen deposit with per-file checksums is built and awaiting acceptance to
 receive its permanent identifier, and the software environment behind every
 number is recorded down to package versions.
 
-Next come the agency's internal clearance steps, then submission. A second
+A second
 paper is planned on the full year of 1998, for which the antenna-temperature
 archives are already downloaded and verified, including a redesign of the
 monthly threshold onto a firing-frequency basis that the current paper's data

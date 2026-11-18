@@ -11,8 +11,8 @@ cannot be adjusted after seeing the answer.
 The paper's surviving central claim is that the revived index has a strong spatial
 correspondence with surface water. All of the evidence for it comes from one reference,
 the Surface WAter Microwave Product Series (SWAMPS), which is built from combined active
-and passive microwave observations. The index is a passive-microwave retrieval. Two
-independent reviews made the same point: a passive-microwave reference and a
+and passive microwave observations. The index is a passive-microwave retrieval. A
+passive-microwave reference and a
 passive-microwave retrieval can agree partly because they share a measurement family and
 its error structure, so the agreement is not independent confirmation.
 

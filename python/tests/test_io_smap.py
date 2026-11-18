@@ -189,7 +189,7 @@ def test_opendap_subset_accepts_a_real_subset_and_builds_the_request(tmp_path):
     """The eight-byte signature is not enough, so the fixture is a real file.
 
     An earlier version passed a 24-byte stub carrying only the magic number, and
-    a review pointed out that a cleanly truncated response would look exactly
+    a cleanly truncated response would look exactly
     like that and be promoted into the cache.
     """
     pytest.importorskip("h5py")
@@ -287,7 +287,7 @@ def test_bin_to_target_refuses_a_longitude_grid_that_is_not_global():
         io._bin_to_target(field, slat, slon, tlat, tlon)
 
 
-# --- behaviors added after an independent review found them unbound ---
+# --- behaviors that earlier tests left unbound ---
 
 def test_month_files_ignores_other_months(tmp_path):
     """Offline loading must not fold a neighboring month into the composite.

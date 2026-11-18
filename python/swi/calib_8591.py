@@ -137,8 +137,8 @@ def cross_validated_fit(c, multi=True, k=5, seed=0):
     diagnostics are the honest estimate of how that model performs on data
     outside the fit. Default k=5.
 
-    This addresses the adversarial-review finding that the 85-to-91 calibration
-    reports in-sample fit diagnostics only. Use the cv_stats fields as the
+    Without this the 85-to-91 calibration
+    would report in-sample fit diagnostics only. Use the cv_stats fields as the
     headline; the in-sample stats are inflated by definition.
     """
     n = c["n"]

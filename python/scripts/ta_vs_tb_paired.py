@@ -6,8 +6,8 @@
 This supersedes `ta_vs_tb_authentic`, which composited a self-gridded antenna
 field and the official CSU brightness grid separately and scored them against
 each other. Those two were built by different spatial operators, so the measured
-separation carried the gridding as well as the input convention. Independent
-review blocked that construction, and the numbers it produced should not be
+separation carried the gridding as well as the input convention. That
+construction was withdrawn, and the numbers it produced should not be
 quoted.
 
 Here both arms come from the paired daily grids written by

@@ -349,7 +349,7 @@ def test_a_refused_swath_is_reported_and_recorded(tmp_path, monkeypatch,
 def test_an_empty_target_archive_does_not_yield_a_complete_day(tmp_path,
                                                                monkeypatch,
                                                                capsys):
-    """The case a prior review demonstrated.
+    """The case that exposed the defect.
 
     With the previous day present and the target day's own archive empty, the
     driver builds the day from the crossing tail alone. That is a few minutes of

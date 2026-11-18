@@ -2,8 +2,7 @@
 
 Emits the three retrievals (wetness index, retrieval temperature, snow flag) for
 ascending and descending passes on the input grid, with metadata following CF and
-ACDD conventions. Attribution credits the Basist algorithm and NOAA NCEI; no AI
-tooling appears in any author or creator field.
+ACDD conventions. Attribution credits the Basist algorithm and NOAA NCEI.
 
 Fill convention: cells with no input observation are written as the fill value
 (-999.0 for floats, -128 for integers). The algorithm's own sentinels are

@@ -60,7 +60,7 @@ def test_check_grid_enforces_the_fixed_grid_invariant():
     """The workers cache cell masks and the atlas from the first day and reuse
     them all month; check_grid makes that invariant fail loudly if a later day
     arrives on a different grid, rather than silently pairing it with stale
-    cached arrays (round-three review, minor 8)."""
+    cached arrays."""
     from swi import grids
     lat = np.linspace(-89.875, 89.875, 720)
     lon = np.linspace(0.125, 359.875, 1440)

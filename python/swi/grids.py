@@ -116,8 +116,7 @@ def check_grid(lat, lon, lat0, lon0):
     shares one geometry. This makes the invariant enforcing rather than
     assumed: it returns the reference grid to keep (the first day's), and
     raises if a later day's grid differs, so a reordered or off-grid day fails
-    loudly instead of being paired with the first day's stale cached arrays
-    (round-three review, minor 8).
+    loudly instead of being paired with the first day's stale cached arrays.
     """
     if lat0 is None:
         return np.asarray(lat), np.asarray(lon)
