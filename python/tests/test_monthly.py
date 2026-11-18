@@ -91,21 +91,52 @@ def test_write_monthly_roundtrip(tmp_path):
     out = str(tmp_path / "mon.nc")
     product.write_monthly_product(out, lat, lon, by_pass,
                                   {"sensor": "F16", "month": "202605", "n_days": 5,
-                                   "calibration": "none"},
+                                   "calibration": "none",
+                                   "time_coverage_start": "2026-05-01",
+                                   "time_coverage_end": "2026-05-05"},
                                   date_created="2026-06-15T00:00:00Z")
     ds = nc.Dataset(out)
     try:
         assert "wetness_index_mean_asc" in ds.variables
         assert "snow_frequency_dsc" in ds.variables
         assert ds.n_days == 5
-        assert ds.creator_name == "Hilawe Semunegus"
-        blob = " ".join(str(ds.getncattr(a)) for a in ds.ncattrs()).lower()
-        # Forbid any AI-tooling credit. The token strings are constructed at
-        # runtime so this assertion does not itself appear in repository-wide
-        # AI-mention scans.
-        forbidden = ("cl" + "aude", "anth" + "ropic")
-        for tok in forbidden:
-            assert tok not in blob
+        # Every global attribute, by value. A new attribute, or a changed one,
+        # fails here until this record is updated to match.
+        attrs = {a: ds.getncattr(a) for a in ds.ncattrs()}
+        assert attrs == {
+            "Conventions": "CF-1.8 ACDD-1.3",
+            "title": "Surface Wetness Index (Basist) monthly product",
+            "summary": ("Monthly mean surface wetness index, near-surface "
+                        "retrieval temperature, and snow frequency from the "
+                        "Basist signal-recognition decision tree applied to CSU "
+                        "SSM/I(S) brightness temperatures."),
+            "institution": ("DOC/NOAA/NCEI > National Centers for "
+                            "Environmental Information"),
+            "creator_name": "Hilawe Semunegus",
+            "creator_institution": "NOAA NCEI",
+            "algorithm": ("Basist signal-recognition decision tree (42 tests); "
+                          "original author Alan Basist"),
+            "references": ("Basist et al. 1998 (J. Appl. Meteor., 37, 888-911); "
+                           "Grody 1991 (J. Geophys. Res., 96, 7423-7435); "
+                           "Grody and Basist 1996 (IEEE TGRS, 34, 237-249)"),
+            "source": "",
+            "platform": "F16",
+            "spatial_resolution": "0.25 degree",
+            "processing_level": "Level 3 monthly gridded",
+            "calibration": "none",
+            "comment": ("Research output, not yet validated. Composited from "
+                        "daily retrievals; only valid daily values contribute "
+                        "to the means."),
+            "month": "202605",
+            "time_coverage_start": "2026-05-01",
+            "time_coverage_end": "2026-05-05",
+            "n_days": 5,
+            "date_created": "2026-06-15T00:00:00Z",
+            "geospatial_lat_min": -89.0,
+            "geospatial_lat_max": 89.0,
+            "geospatial_lon_min": 0.5,
+            "geospatial_lon_max": 359.5,
+        }
     finally:
         ds.close()
 
@@ -131,11 +162,42 @@ def test_write_weekly_period_labels(tmp_path):
                                  date_created="2026-06-15T00:00:00Z")
     ds = nc.Dataset(out)
     try:
-        assert "weekly" in ds.title.lower()
-        assert "weekly" in ds.processing_level.lower()
-        assert ds.week == "2026-W18"
-        assert ds.time_coverage_start == "2026-05-01"
-        assert ds.creator_name == "Hilawe Semunegus"
+        # Every global attribute of the weekly product, by value.
+        attrs = {a: ds.getncattr(a) for a in ds.ncattrs()}
+        assert attrs == {
+            "Conventions": "CF-1.8 ACDD-1.3",
+            "title": "Surface Wetness Index (Basist) weekly product",
+            "summary": ("Weekly mean surface wetness index, near-surface "
+                        "retrieval temperature, and snow frequency from the "
+                        "Basist signal-recognition decision tree applied to CSU "
+                        "SSM/I(S) brightness temperatures."),
+            "institution": ("DOC/NOAA/NCEI > National Centers for "
+                            "Environmental Information"),
+            "creator_name": "Hilawe Semunegus",
+            "creator_institution": "NOAA NCEI",
+            "algorithm": ("Basist signal-recognition decision tree (42 tests); "
+                          "original author Alan Basist"),
+            "references": ("Basist et al. 1998 (J. Appl. Meteor., 37, 888-911); "
+                           "Grody 1991 (J. Geophys. Res., 96, 7423-7435); "
+                           "Grody and Basist 1996 (IEEE TGRS, 34, 237-249)"),
+            "source": "",
+            "platform": "F16",
+            "spatial_resolution": "0.25 degree",
+            "processing_level": "Level 3 weekly gridded",
+            "calibration": "none",
+            "comment": ("Research output, not yet validated. Composited from "
+                        "daily retrievals; only valid daily values contribute "
+                        "to the means."),
+            "week": "2026-W18",
+            "time_coverage_start": "2026-05-01",
+            "time_coverage_end": "2026-05-07",
+            "n_days": 7,
+            "date_created": "2026-06-15T00:00:00Z",
+            "geospatial_lat_min": -89.0,
+            "geospatial_lat_max": 89.0,
+            "geospatial_lon_min": 0.5,
+            "geospatial_lon_max": 359.5,
+        }
     finally:
         ds.close()
 
