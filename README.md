@@ -54,10 +54,10 @@ algorithm outputs and are not evaluated as products:
 ![Reconstructed monthly product](docs/figures/fig_product.png)
 
 The wetness index beside the Surface Water Microwave Product Series inundation
-fraction for the same month, co-located over land. High index values fall where
+fraction for July 2016, co-located over land. High index values fall where
 the reference places surface water, with an area-weighted rank correlation of
-0.57 and index values about 4.2 times higher in inundated cells than in dry
-ones. The index fires on more cells than the reference calls inundated, so the
+0.57 and a reference water fraction about 4.2 times higher where the index
+fires than where it is silent. The index fires on more cells than the reference calls inundated, so the
 false alarm ratio at this untuned operating point is near 0.70:
 
 ![Wetness index and SWAMPS inundation](docs/figures/fig_swamps.png)
@@ -163,18 +163,19 @@ but otherwise stand alone.
 The algorithm is grounded in these papers:
 
 - Basist, A., N. C. Grody, T. C. Peterson, and C. N. Williams (1998).
-  Using the Special Sensor Microwave Imager to monitor land surface
+  Using the Special Sensor Microwave/Imager to monitor land surface
   temperatures, wetness, and snow cover.
   Journal of Applied Meteorology 37(9), 888 to 911.
-- Basist, A., C. N. Williams, T. C. Peterson, N. Grody, P. Ross, and T. Karl
-  (2001). Using the Special Sensor Microwave Imager to monitor land surface
-  parameters.
+- Basist, A., C. Williams Jr., N. Grody, T. F. Ross, S. Shen, A. T. C. Chang,
+  R. Ferraro, and M. J. Menne (2001). Using the Special Sensor Microwave
+  Imager to monitor surface wetness.
   Journal of Hydrometeorology 2(3), 297 to 308.
 
 The CSU Brightness Temperature FCDR used as input is documented in:
 
-- Berg, W. and C. Kummerow (2018). Multisatellite intercalibrated CDR of
-  brightness temperatures. Remote Sensing 10(8), 1306.
+- Berg, W., R. Kroodsma, C. D. Kummerow, and D. S. McKague (2018).
+  Fundamental climate data records of microwave brightness temperatures.
+  Remote Sensing 10(8), 1306.
 
 ## License
 
