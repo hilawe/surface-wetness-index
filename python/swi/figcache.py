@@ -37,6 +37,24 @@ _CACHE_DIR = os.path.abspath(
 # combines shading, lines and text. Setting SWI_FIG_DPI redraws any figure at
 # another resolution with nothing else about it changed.
 SCREEN_DPI = 150
+
+# The top of the color scale for the wetness index on the validation maps
+# (Figs. 3, 4 and 6 of the manuscript). The index runs 0 to 100, and over the
+# cells those maps plot, 92 to 98 percent of them are at or under 20, measured
+# on the three figure caches on 2026-11-24. Drawn on the full range the panel
+# showed almost nothing. Values above the limit take the top color, and the
+# colorbar ends in a point to say so.
+MAP_INDEX_MAX = 20
+
+
+def plain_minus(matplotlib):
+    """Set negative tick labels with a hyphen, for the figure being drawn.
+
+    matplotlib writes a typographic minus by default. The figures of the
+    manuscript use the hyphen throughout, and until 2026-11-24 the maps were
+    the ones that did not.
+    """
+    matplotlib.rcParams["axes.unicode_minus"] = False
 DPI_ENV = "SWI_FIG_DPI"
 
 

@@ -287,6 +287,7 @@ def main():
 def _map(lat, lon, wet, sm, mask, month, out):
     import matplotlib
     matplotlib.use("Agg")
+    figcache.plain_minus(matplotlib)
     import matplotlib.pyplot as plt
     w = 6.5; sc = w / 6.5
     tsz, tick, plab = 10 * sc, 9 * sc, 12 * sc
@@ -294,15 +295,18 @@ def _map(lat, lon, wet, sm, mask, month, out):
     v = lambda a: np.roll(np.where(mask, a, np.nan), roll, axis=1)
     fig, ax = plt.subplots(2, 1, figsize=(w, 4.8))
     for a, letter, (img, ttl, cm, lo, hi, unit) in zip(ax, ("(a)", "(b)"), [
-            (v(wet), f"SWI WET (F-16, {month})", "YlGnBu", 0, 100,
-             r"wetness index (0 to 100)"),
+            (v(wet), f"SWI WET (F-16, {month})", "YlGnBu", 0,
+             figcache.MAP_INDEX_MAX, "wetness index"),
             (v(sm), "SMAP L-band soil moisture (AM)", "YlGnBu", 0, 0.5,
              r"soil moisture (m$^3$/m$^3$)")]):
         im = a.imshow(img, origin="lower", extent=ext, aspect="auto", cmap=cm,
                       vmin=lo, vmax=hi)
         a.set_title(ttl, fontsize=tsz, pad=4)
         a.tick_params(labelsize=tick)
-        cb = fig.colorbar(im, ax=a, shrink=0.85); cb.ax.tick_params(labelsize=tick)
+        # Both panels hold values above their limits, so each scale ends in
+        # a point.
+        cb = fig.colorbar(im, ax=a, shrink=0.85, extend="max")
+        cb.ax.tick_params(labelsize=tick)
         cb.set_label(unit, fontsize=tick)
         a.text(0.015, 0.96, letter, transform=a.transAxes, fontsize=plab,
                fontweight="bold", va="top", ha="left",

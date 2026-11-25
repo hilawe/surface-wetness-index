@@ -30,6 +30,7 @@ def opt(argv, flag, default=None):
 def _plot(lat, lon, wet, temp, snow, month, pass_, out):
     import matplotlib
     matplotlib.use("Agg")
+    figcache.plain_minus(matplotlib)
     import matplotlib.pyplot as plt
 
     roll = lon.size // 2

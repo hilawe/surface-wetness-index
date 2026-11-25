@@ -159,6 +159,7 @@ def main():
 def _map(lat, lon, r, out):
     import matplotlib
     matplotlib.use("Agg")
+    figcache.plain_minus(matplotlib)
     import matplotlib.pyplot as plt
     # Author at the ~6.5 in text width so titles/labels land >= 8 pt on the page
     # after the figure-to-page reduction (paper-figure-standards.md, section 2).
