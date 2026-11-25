@@ -210,6 +210,61 @@ def temporal_anomaly_correlation(stack_a, stack_b, min_n=8):
     return r, n
 
 
+def calendar_month_departures(stack, months):
+    """Each month of a (T, nlat, nlon) stack minus that cell's calendar-month mean.
+
+    months is the sequence of 'YYYYMM' labels for the stack. The mean for, say,
+    every July is taken over the Julys present and subtracted from each of
+    them, which removes the seasonal cycle. Subtracting one constant per cell
+    does not, because a correlation is unchanged by it.
+
+    The climatology is only as long as the record. With three years, each
+    calendar month keeps two degrees of freedom, so a correlation of these
+    departures is a statement about a short record and should be reported
+    with its length.
+    """
+    import warnings
+
+    A = np.asarray(stack, np.float64)
+    cal = np.array([int(str(m)[4:6]) for m in months])
+    if cal.size != A.shape[0]:
+        raise ValueError(
+            f"{cal.size} month labels for a stack of {A.shape[0]} months")
+    out = np.full(A.shape, np.nan)
+    for c in np.unique(cal):
+        sel = cal == c
+        with warnings.catch_warnings():
+            # A cell with no valid value in this calendar month has no mean,
+            # and its departures stay NaN by intent.
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            out[sel] = A[sel] - np.nanmean(A[sel], axis=0)
+    return out
+
+
+def area_weighted_scores(index, ref, lat, thr=0.0):
+    """Correlations and detection contrast with cells weighted by cos(latitude).
+
+    index, ref and lat are 1-D arrays over the same co-located cells. The
+    unweighted scores count every equal-angle cell the same, which gives the
+    high latitudes more say than their area. These are the same statistics
+    with each cell weighted by the cosine of its latitude. The Spearman value
+    is the one section 5.1 of the paper calls area weighted, ordinary ranks
+    with the weights applied to their correlation, and the rank-distribution
+    form is carried beside it.
+    """
+    index = np.asarray(index, np.float64)
+    ref = np.asarray(ref, np.float64)
+    w = np.cos(np.deg2rad(np.asarray(lat, np.float64)))
+    return {
+        "spearman_area_weighted": float(weighted_spearman(index, ref, w)),
+        "spearman_area_weighted_rankdist":
+            float(weighted_spearman_rankdist(index, ref, w)),
+        "pearson_area_weighted": float(weighted_pearson(index, ref, w)),
+        "contrast_area_weighted":
+            float(weighted_detection_contrast(index, ref, w, thr=thr)["ratio"]),
+    }
+
+
 def weighted_pearson(a, b, w):
     """Pearson correlation of a and b with per-sample weights w."""
     a = np.asarray(a, np.float64); b = np.asarray(b, np.float64)

@@ -95,6 +95,19 @@ def main():
     print(f"  fraction r > 0.3  : {100*np.mean(g > 0.3):.1f}%")
     print(f"  fraction r > 0.5  : {100*np.mean(g > 0.5):.1f}%")
 
+    # The same statistic with each cell's calendar-month mean removed from
+    # both series, which takes the seasonal cycle out. The record is short, so
+    # the climatology it is measured against is short too.
+    rd, _ = val.temporal_anomaly_correlation(
+        val.calendar_month_departures(A, months),
+        val.calendar_month_departures(B, months), min_n=min_n)
+    gd = rd[np.isfinite(rd)]
+    n_years = len({m[:4] for m in months})
+    print(f"\nWith each cell's calendar-month mean removed ({n_years} years):")
+    print(f"  cells evaluated   : {gd.size:,}")
+    print(f"  median r          : {np.median(gd):+.3f}")
+    print(f"  fraction r > 0    : {100*np.mean(gd > 0):.1f}%")
+
     if json_out:
         import json
         res = {
@@ -111,6 +124,17 @@ def main():
             "fraction_positive": float(np.mean(g > 0)),
             "fraction_above_0.3": float(np.mean(g > 0.3)),
             "fraction_above_0.5": float(np.mean(g > 0.5)),
+            "calendar_month_mean_removed": {
+                "note": "each cell's calendar-month mean over the record "
+                        "removed from both series before correlating, which "
+                        "takes the seasonal cycle out. The climatology is as "
+                        "short as the record",
+                "years_in_climatology": int(n_years),
+                "cells_evaluated": int(gd.size),
+                "median_r": float(np.median(gd)),
+                "mean_r": float(np.mean(gd)),
+                "fraction_positive": float(np.mean(gd > 0)),
+            },
         }
         os.makedirs(os.path.dirname(json_out) or ".", exist_ok=True)
         with open(json_out, "w") as f:

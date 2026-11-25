@@ -219,4 +219,83 @@ def test_block_ids_separate_distant_points():
     assert ids[0] == ids[1]      # same 10-degree block
     assert ids[2] != ids[0]
 
+
+def _three_years(seasonal, yearly):
+    """A (36, 1, 2) stack: a seasonal cycle plus one offset per year."""
+    months = [f"{y}{m:02d}" for y in (2021, 2022, 2023) for m in range(1, 13)]
+    stack = np.zeros((36, 1, 2))
+    for i, label in enumerate(months):
+        y, m = int(label[:4]) - 2021, int(label[4:]) - 1
+        stack[i, 0, :] = seasonal[m] + yearly[y]
+    return stack, months
+
+
+def test_calendar_month_departures_remove_a_seasonal_cycle_exactly():
+    seasonal = 10.0 * np.sin(np.arange(12) * np.pi / 6.0)
+    stack, months = _three_years(seasonal, yearly=[0.0, 0.0, 0.0])
+    dep = val.calendar_month_departures(stack, months)
+    assert np.allclose(dep, 0.0)
+
+
+def test_calendar_month_departures_keep_the_year_to_year_signal():
+    seasonal = 10.0 * np.sin(np.arange(12) * np.pi / 6.0)
+    stack, months = _three_years(seasonal, yearly=[-1.0, 0.0, 1.0])
+    dep = val.calendar_month_departures(stack, months)
+    assert np.allclose(dep[:12], -1.0)
+    assert np.allclose(dep[12:24], 0.0)
+    assert np.allclose(dep[24:], 1.0)
+
+
+def test_a_seasonal_cycle_alone_no_longer_correlates_two_series():
+    """The reason the departures exist. Two series that share only a season
+    correlate strongly as they stand and not at all once it is removed."""
+    rng = np.random.default_rng(3)
+    seasonal = 10.0 * np.sin(np.arange(12) * np.pi / 6.0)
+    a, months = _three_years(seasonal, yearly=[0.0, 0.0, 0.0])
+    b, _ = _three_years(2.0 * seasonal, yearly=[0.0, 0.0, 0.0])
+    a = a + rng.normal(0, 0.5, a.shape)
+    b = b + rng.normal(0, 0.5, b.shape)
+    raw, _n = val.temporal_anomaly_correlation(a, b, min_n=33)
+    dep, _n = val.temporal_anomaly_correlation(
+        val.calendar_month_departures(a, months),
+        val.calendar_month_departures(b, months), min_n=33)
+    assert np.all(raw > 0.9)
+    assert np.all(np.abs(dep) < 0.5)
+
+
+def test_calendar_month_departures_refuse_a_wrong_number_of_labels():
+    import pytest
+    stack, months = _three_years(np.zeros(12), yearly=[0.0, 0.0, 0.0])
+    with pytest.raises(ValueError):
+        val.calendar_month_departures(stack, months[:-1])
+
+
+def test_area_weighted_scores_equal_the_plain_ones_at_one_latitude():
+    rng = np.random.default_rng(1)
+    index = np.where(rng.uniform(size=400) > 0.5, rng.uniform(0, 50, 400), 0.0)
+    ref = 0.01 * index + rng.normal(0.2, 0.05, 400)
+    lat = np.full(400, 30.0)
+    got = val.area_weighted_scores(index, ref, lat)
+    plain = val.skill_scores(index, ref)
+    assert np.isclose(got["spearman_area_weighted"], plain["spearman_r"])
+    assert np.isclose(got["pearson_area_weighted"], plain["pearson_r"])
+    assert np.isclose(got["contrast_area_weighted"],
+                      val.detection_contrast(index, ref)["ratio"])
+
+
+def test_area_weighting_follows_the_low_latitudes():
+    """Related at the equator and unrelated near the pole. The weighted
+    scores lean toward the equatorial cells, which cover more ground."""
+    rng = np.random.default_rng(2)
+    n = 500
+    x_low = rng.uniform(0, 50, n)
+    x_high = rng.uniform(0, 50, n)
+    index = np.concatenate([x_low, x_high])
+    ref = np.concatenate([x_low + rng.normal(0, 1, n), rng.uniform(0, 50, n)])
+    lat = np.concatenate([np.full(n, 0.0), np.full(n, 80.0)])
+    got = val.area_weighted_scores(index, ref, lat)
+    plain = val.skill_scores(index, ref)
+    assert got["spearman_area_weighted"] > plain["spearman_r"] + 0.1
+    assert got["pearson_area_weighted"] > plain["pearson_r"] + 0.1
+
 # This file tests the shared numerical metrics and regridding functions.

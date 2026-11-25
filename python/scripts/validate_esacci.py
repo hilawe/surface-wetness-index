@@ -130,6 +130,7 @@ def main():
                 "n_blocks": int(ci["n_blocks"]), "n_draws": int(ci["n_draws"])},
             "spearman_among_firing": float(among["spearman_r"]),
             "categorical_vs_sm_tercile": {k: float(v) for k, v in cat.items()},
+            "area_weighted": val.area_weighted_scores(W, S, latm, thr=0.0),
             "contrast_by_zone": {name: {k: (int(v) if k.startswith("n_") else float(v))
                                         for k, v in z.items()}
                                  for name, z in

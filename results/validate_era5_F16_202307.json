@@ -1,4 +1,10 @@
 {
+  "area_weighted": {
+    "contrast_area_weighted": 1.7541223810625857,
+    "pearson_area_weighted": 0.10317884867748704,
+    "spearman_area_weighted": 0.35109426239050967,
+    "spearman_area_weighted_rankdist": 0.35384469087384535
+  },
   "categorical_vs_sm_tercile": {
     "CSI": 0.35810056148259706,
     "FAR": 0.5682452441595476,

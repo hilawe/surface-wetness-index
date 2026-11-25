@@ -107,6 +107,7 @@ def main():
                 "lo": float(ci["lo"]), "hi": float(ci["hi"]),
                 "n_blocks": int(ci["n_blocks"]), "n_draws": int(ci["n_draws"])},
             "categorical_vs_sm_tercile": {k: float(v) for k, v in cat.items()},
+            "area_weighted": val.area_weighted_scores(W, S, latm, thr=0.0),
         }
         os.makedirs(os.path.dirname(json_out) or ".", exist_ok=True)
         with open(json_out, "w") as f:

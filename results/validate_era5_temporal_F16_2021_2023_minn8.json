@@ -1,10 +1,18 @@
 {
-  "cells_evaluated": 204978,
-  "fraction_above_0.3": 0.3792260632848403,
-  "fraction_above_0.5": 0.17581886836636126,
-  "fraction_positive": 0.6475085131087238,
-  "mean_r": 0.13486798173526274,
-  "median_r": 0.1721540868652779,
+  "calendar_month_mean_removed": {
+    "cells_evaluated": 205672,
+    "fraction_positive": 0.7190818390446925,
+    "mean_r": 0.16936352133430535,
+    "median_r": 0.17449015822610386,
+    "note": "each cell's calendar-month mean over the record removed from both series before correlating, which takes the seasonal cycle out. The climatology is as short as the record",
+    "years_in_climatology": 3
+  },
+  "cells_evaluated": 205719,
+  "fraction_above_0.3": 0.37938158361648655,
+  "fraction_above_0.5": 0.1772757985407279,
+  "fraction_positive": 0.6473587758058322,
+  "mean_r": 0.13504331552911386,
+  "median_r": 0.17213631623172476,
   "min_valid_months_per_cell": 8,
   "months": [
     "202101",
