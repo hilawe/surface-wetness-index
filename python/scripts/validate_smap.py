@@ -57,6 +57,46 @@ def read_product(path, pass_="dsc"):
     return lat, lon, wet, snowf
 
 
+def range_sensitivity(wet, snowf, plat, sm_strict, strict_stats, baseline_n):
+    """The same comparison with out-of-range daily retrievals removed.
+
+    The product states an inclusive valid range for soil moisture, and daily
+    retrievals outside it pass the recommended-quality screen, so the
+    comparison the paper reports keeps them. This scores the composite made
+    with those retrievals removed before the binning, on the same mask rule
+    as the baseline, and returns what the result file stores beside it. The
+    baseline scores stay where they were.
+    """
+    if "valid_range" not in strict_stats:
+        raise ValueError(
+            "the composite was not made with valid_range on, so it is the "
+            "baseline and not its sensitivity")
+    bounds = strict_stats["valid_range"]
+    land = np.isfinite(sm_strict)
+    unfrozen = ~(snowf > 0.5)
+    m = val.common_valid(wet, sm_strict, land) & unfrozen & (wet >= 0)
+    latm = np.broadcast_to(plat[:, None], wet.shape)[m]
+    W, S = wet[m], sm_strict[m]
+    s = val.skill_scores(W, S)
+    dc = val.detection_contrast(W, S, thr=0.0)
+    return {
+        "note": "daily retrievals outside the stated valid range are removed "
+                "before the binning to the product grid. The baseline above "
+                "keeps them",
+        "valid_min": float(bounds["valid_min"]),
+        "valid_max": float(bounds["valid_max"]),
+        "units": str(bounds["units"]),
+        "fine_retrievals_rejected": int(bounds["fine_rejected"]),
+        "n_cells_baseline": int(baseline_n),
+        "n_cells": int(s["n"]),
+        "cells_removed": int(baseline_n) - int(s["n"]),
+        "spearman": float(s["spearman_r"]),
+        "pearson": float(s["pearson_r"]),
+        "detection_contrast_ratio": float(dc["ratio"]),
+        "area_weighted": val.area_weighted_scores(W, S, latm, thr=0.0),
+    }
+
+
 def main():
     if "--from-cache" in sys.argv:
         cpath = sys.argv[sys.argv.index("--from-cache") + 1]
@@ -172,6 +212,18 @@ def main():
 
     if json_out:
         import json
+        # the valid-range sensitivity, a third composite of the same days
+        strict_on, _, strict_st = load_smap_monthly(
+            month, data_dir, plat, plon, download=False, verbose=False,
+            valid_range=True)
+        sens = range_sensitivity(wet, snowf, plat, strict_on, strict_st,
+                                 baseline_n=s["n"])
+        print(f"  VALID RANGE {sens['valid_min']:.2f} to {sens['valid_max']:.2f} "
+              f"{sens['units']}: {sens['fine_retrievals_rejected']:,} daily "
+              f"retrievals outside it, {sens['cells_removed']} fewer cells "
+              f"({sens['n_cells']:,}), Spearman {sens['spearman']:+.4f}, "
+              f"Pearson {sens['pearson']:+.4f}, contrast "
+              f"{sens['detection_contrast_ratio']:.4f}")
         res = {
             "product": os.path.basename(product),
             "reference": f"SMAP {SHORT_NAME} {VERSION} AM (L-band)",
@@ -205,6 +257,7 @@ def main():
             "spearman_among_firing": float(among["spearman_r"]),
             "categorical_vs_sm_tercile": {k: float(v) for k, v in cat.items()},
             "area_weighted": val.area_weighted_scores(W, S, latm, thr=0.0),
+            "valid_range_sensitivity": sens,
             "contrast_by_zone": {name: {k: (int(v) if k.startswith("n_") else float(v))
                                         for k, v in z.items()}
                                  for name, z in

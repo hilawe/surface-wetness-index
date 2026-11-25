@@ -22,6 +22,11 @@ agreement.
 Usage:
     python -m scripts.optical_independence_test PRODUCT.nc SWAMPS_FW.nc
         [--jrc-dir DIR] [--out J.json]
+    python -m scripts.optical_independence_test --from-result J.json [--out K.json]
+
+The second form needs no rasters. It reads a stored result, recomputes the
+summaries from the tile values in it, requires the five-tile summary to come
+out as stored, and writes the result with the four-tile summary added.
 """
 
 import glob
@@ -127,8 +132,69 @@ def _stats(index, ref, w, lat, lon, label):
     }
 
 
+# The arid control of the preregistration. It is a tile where no signal is
+# expected, so a median meant to describe the tiles with a signal leaves it out.
+CONTROL_TILE = "0E_30N"
+
+
+def tile_medians(tiles):
+    """Medians of the per-tile area-weighted Spearman values, over every tile."""
+    t_o = [v["vs_optical"]["spearman_area_weighted"] for v in tiles.values()]
+    t_s = [v["vs_swamps"]["spearman_area_weighted"] for v in tiles.values()]
+    return {
+        "vs_optical": float(np.median(t_o)), "vs_swamps": float(np.median(t_s)),
+        "ratio": float(np.median(t_o) / np.median(t_s)) if np.median(t_s) else float("nan"),
+    }
+
+
+def signal_tile_median(tiles):
+    """The medians over the four tiles with a signal, which Table 4 prints.
+
+    Every registered tile but the arid control has to be present, so that a
+    run missing a tile cannot report a median of three under this name.
+    """
+    names = sorted(t for t in TILES if t != CONTROL_TILE)
+    missing = [t for t in names if t not in tiles]
+    if missing:
+        raise ValueError(f"no result for the registered tile(s) {missing}, so "
+                         "the four-tile median cannot be formed")
+    out = tile_medians({t: tiles[t] for t in names})
+    out.update(n_tiles=len(names), tiles=names,
+               note="the registered tiles without the arid control "
+                    f"{CONTROL_TILE}, which is the summary row of Table 4")
+    return out
+
+
+def resummarize(result_path, out_path):
+    """Add the four-tile summary to a stored result, from its own tile values.
+
+    The five-tile summary is recomputed first and has to equal what the full
+    run stored. That shows this path forms a median the way the full run did
+    before anything is written.
+    """
+    with open(result_path) as fh:
+        out = json.load(fh)
+    again = tile_medians(out["tiles"])
+    if again != out.get("within_tile_median"):
+        raise ValueError(
+            "the stored within_tile_median does not follow from the stored "
+            f"tiles ({out.get('within_tile_median')} against {again}), so "
+            "this result is not one to add a summary to")
+    out["signal_tile_median"] = signal_tile_median(out["tiles"])
+    with open(out_path, "w") as fh:
+        json.dump(out, fh, indent=2, sort_keys=True)
+    s = out["signal_tile_median"]
+    print(f"four tiles with a signal: index vs optical {s['vs_optical']:+.3f}, "
+          f"index vs SWAMPS {s['vs_swamps']:+.3f}")
+    print(f"wrote {out_path}")
+    return 0
+
+
 def main():
     argv = sys.argv
+    if "--from-result" in argv:
+        stored = argv[argv.index("--from-result") + 1]
+        return resummarize(stored, opt(argv, "--out", stored))
     if len(argv) < 3:
         print(__doc__)
         return 1
@@ -215,12 +281,15 @@ def main():
         # Simpson's-paradox artifact rather than skill. Both are reported, with the
         # per-tile medians first.
         t_o = [v["vs_optical"]["spearman_area_weighted"] for v in out["tiles"].values()]
-        t_s = [v["vs_swamps"]["spearman_area_weighted"] for v in out["tiles"].values()]
-        out["within_tile_median"] = {
-            "vs_optical": float(np.median(t_o)), "vs_swamps": float(np.median(t_s)),
-            "ratio": float(np.median(t_o) / np.median(t_s)) if np.median(t_s) else float("nan"),
-        }
-        print(f"\n=== within-tile medians over {len(out['tiles'])} tiles (the headline) ===")
+        out["within_tile_median"] = tile_medians(out["tiles"])
+        if all(t in out["tiles"] for t in TILES):
+            out["signal_tile_median"] = signal_tile_median(out["tiles"])
+            sig = out["signal_tile_median"]
+            print("\n=== medians over the four tiles with a signal (Table 4) ===")
+            print(f"  index vs optical  : area-weighted Spearman {sig['vs_optical']:+.3f}")
+            print(f"  index vs SWAMPS   : area-weighted Spearman {sig['vs_swamps']:+.3f}")
+        print(f"\n=== within-tile medians over all {len(out['tiles'])} tiles, "
+              "the arid control included ===")
         print(f"  index vs optical  : area-weighted Spearman "
               f"{out['within_tile_median']['vs_optical']:+.3f}")
         print(f"  index vs SWAMPS   : area-weighted Spearman "

@@ -242,7 +242,33 @@ QF_NOT_SUCCESSFUL = 0b100
 SCREENS = ("recommended", "successful", "none")
 
 
-def _read_day(path, screen="recommended"):
+def _stated_range(dataset, path):
+    """The inclusive bounds and the units the product states for a variable.
+
+    Read from the file and never typed in here, so that the screen applies the
+    product's own range and not a second copy of it.
+    """
+    out = {}
+    for name in ("valid_min", "valid_max"):
+        if name not in dataset.attrs:
+            raise ValueError(
+                f"{os.path.basename(path)}: soil_moisture states no {name}, "
+                "so the range screen has nothing to apply")
+        out[name] = float(np.asarray(dataset.attrs[name], np.float64).ravel()[0])
+    units = dataset.attrs.get("units", "")
+    out["units"] = units.decode() if isinstance(units, bytes) else str(units)
+    return out
+
+
+def stated_range(path):
+    """The soil-moisture bounds one daily file states, see `_stated_range`."""
+    import h5py
+
+    with h5py.File(path, "r") as f:
+        return _stated_range(f[GROUP_AM]["soil_moisture"], path)
+
+
+def _read_day(path, screen="recommended", valid_range=False):
     """Return the AM soil moisture field for one day, NaN where unusable.
 
     Three screens, because the sensitivity question and the headline question
@@ -258,6 +284,12 @@ def _read_day(path, screen="recommended"):
       product itself marks unsuccessful, about 7.5 percent of July's numeric
       values, so it is NOT a valid scientific sensitivity and exists only to
       quantify what the screens remove.
+
+    valid_range is a separate, optional screen, off by default. The product
+    states an inclusive range for the variable, and retrievals outside it
+    pass the quality flags, so the comparisons of the paper keep them. With
+    valid_range on they are removed as well, after the quality screen, which
+    is what the range sensitivity of the validation driver measures.
     """
     import h5py
 
@@ -267,11 +299,16 @@ def _read_day(path, screen="recommended"):
         g = f[GROUP_AM]
         sm = np.asarray(g["soil_moisture"][:], np.float64)
         qf = np.asarray(g["retrieval_qual_flag"][:])
+        bounds = _stated_range(g["soil_moisture"], path) if valid_range else None
     sm = np.where(sm < FILL_MAX, np.nan, sm)
     if screen == "recommended":
         sm = np.where((qf & QF_NOT_RECOMMENDED) == 0, sm, np.nan)
     elif screen == "successful":
         sm = np.where((qf & (QF_NOT_ATTEMPTED | QF_NOT_SUCCESSFUL)) == 0, sm, np.nan)
+    if bounds is not None:
+        with np.errstate(invalid="ignore"):
+            inside = (sm >= bounds["valid_min"]) & (sm <= bounds["valid_max"])
+        sm = np.where(inside, sm, np.nan)
     return sm
 
 
@@ -334,7 +371,8 @@ def month_files(month, data_dir):
 
 
 def load_smap_monthly(month, data_dir, target_lat, target_lon,
-                      download=True, screen="recommended", verbose=True):
+                      download=True, screen="recommended", verbose=True,
+                      valid_range=False):
     """Composite SMAP AM soil moisture to a monthly mean on the target grid.
 
     Returns (sm_mean, n_days, stats):
@@ -346,6 +384,11 @@ def load_smap_monthly(month, data_dir, target_lat, target_lon,
     Each day is screened and binned to the target grid FIRST, then the daily
     target fields are averaged, which matches how the ESA CCI comparison forms
     its monthly mean and keeps the two numbers comparable.
+
+    With valid_range on, each day's retrievals outside the range the product
+    states are removed before the binning, and stats gains a "valid_range"
+    entry with the bounds and the number removed. The default composite and
+    its stats are unchanged by the option.
     """
     days = fetch_month(month, data_dir, verbose=verbose) if download \
         else month_files(month, data_dir)
@@ -358,12 +401,22 @@ def load_smap_monthly(month, data_dir, target_lat, target_lon,
 
     acc = np.zeros((tlat.size, tlon.size), np.float64)
     nday = np.zeros((tlat.size, tlon.size), np.float64)
-    n_numeric = n_kept = n_successful = 0
+    n_numeric = n_kept = n_successful = n_in_range = 0
+    bounds = None
     for _, path in days:
         n_numeric += int(np.sum(np.isfinite(_read_day(path, screen="none"))))
         n_successful += int(np.sum(np.isfinite(_read_day(path, screen="successful"))))
         sm = _read_day(path, screen=screen)
         n_kept += int(np.sum(np.isfinite(sm)))
+        if valid_range:
+            today = stated_range(path)
+            if bounds is not None and today != bounds:
+                raise ValueError(
+                    f"{os.path.basename(path)} states the range {today}, and "
+                    f"an earlier day of the month states {bounds}")
+            bounds = today
+            sm = _read_day(path, screen=screen, valid_range=True)
+            n_in_range += int(np.sum(np.isfinite(sm)))
         ssum, scnt = _bin_to_target(sm, slat, slon, tlat, tlon)
         with np.errstate(invalid="ignore", divide="ignore"):
             daily = np.where(scnt > 0, ssum / np.maximum(scnt, 1.0), np.nan)
@@ -385,4 +438,7 @@ def load_smap_monthly(month, data_dir, target_lat, target_lon,
         else float("nan"),
         "target_cells_with_data": int(np.sum(nday > 0)),
     }
+    if valid_range:
+        stats["valid_range"] = dict(bounds, fine_kept=n_in_range,
+                                    fine_rejected=n_kept - n_in_range)
     return mean, nday, stats

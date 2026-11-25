@@ -56,6 +56,19 @@
   },
   "product": "SWI_F16_201607_monthly_full.nc",
   "reference_swamps": "swamps_fw_201607.nc",
+  "signal_tile_median": {
+    "n_tiles": 4,
+    "note": "the registered tiles without the arid control 0E_30N, which is the summary row of Table 4",
+    "ratio": 0.7303600640296818,
+    "tiles": [
+      "100W_50N",
+      "60E_70N",
+      "70W_0N",
+      "90E_30N"
+    ],
+    "vs_optical": 0.5678029606721533,
+    "vs_swamps": 0.7774288171499446
+  },
   "tiles": {
     "0E_30N": {
       "n_cells": 1600,

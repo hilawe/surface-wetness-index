@@ -82,5 +82,24 @@
   "product": "SWI_BASIST_F16_202307_monthly_v0cal.nc",
   "reference": "SMAP SPL3SMP_E 006 AM (L-band)",
   "spearman": 0.6180214568478931,
-  "spearman_among_firing": 0.30176764631692976
+  "spearman_among_firing": 0.30176764631692976,
+  "valid_range_sensitivity": {
+    "area_weighted": {
+      "contrast_area_weighted": 2.1786086470666324,
+      "pearson_area_weighted": 0.27062546811695176,
+      "spearman_area_weighted": 0.6280145200390786,
+      "spearman_area_weighted_rankdist": 0.6326932875730433
+    },
+    "cells_removed": 51,
+    "detection_contrast_ratio": 2.065525401936732,
+    "fine_retrievals_rejected": 21707,
+    "n_cells": 144509,
+    "n_cells_baseline": 144560,
+    "note": "daily retrievals outside the stated valid range are removed before the binning to the product grid. The baseline above keeps them",
+    "pearson": 0.28084750161500804,
+    "spearman": 0.6177140522535269,
+    "units": "cm**3/cm**3",
+    "valid_max": 0.5,
+    "valid_min": 0.019999999552965164
+  }
 }

@@ -387,3 +387,113 @@ def test_opendap_subset_deletes_a_download_that_fails_verification(tmp_path):
         io._opendap_subset(sess, "GRANULE_UR", ["soil_moisture"], str(out))
     assert not out.exists()
     assert not (tmp_path / "day.nc4.part").exists()
+
+
+# --- the product's own valid range, as a sensitivity screen ---
+
+def _write_day_with_bounds(path, sm, qf, valid_min=0.02, valid_max=0.5):
+    h5py = pytest.importorskip("h5py")
+    with h5py.File(path, "w") as f:
+        g = f.create_group(io.GROUP_AM)
+        d = g.create_dataset("soil_moisture", data=np.asarray(sm, np.float32))
+        if valid_min is not None:
+            d.attrs["valid_min"] = np.array([valid_min], np.float32)
+        if valid_max is not None:
+            d.attrs["valid_max"] = np.array([valid_max], np.float32)
+        d.attrs["units"] = "cm**3/cm**3"
+        g.create_dataset("retrieval_qual_flag", data=qf)
+
+
+def test_read_day_keeps_out_of_range_retrievals_unless_asked(tmp_path):
+    """The baseline of the paper keeps them, so the default must not move.
+
+    The bounds are inclusive. A retrieval stored at exactly the lower or the
+    upper bound is a valid one.
+    """
+    pytest.importorskip("h5py")
+    p = tmp_path / "smap_am_20230701.nc4"
+    _write_day_with_bounds(p, [[0.01, 0.02], [0.50, 0.62]],
+                           np.zeros((2, 2), dtype=np.uint16))
+    baseline = io._read_day(str(p))
+    assert np.all(np.isfinite(baseline))
+    strict = io._read_day(str(p), valid_range=True)
+    assert np.isnan(strict[0, 0]) and np.isnan(strict[1, 1])
+    assert strict[0, 1] == pytest.approx(0.02)
+    assert strict[1, 0] == pytest.approx(0.50)
+
+
+def test_read_day_applies_the_range_after_the_quality_screen(tmp_path):
+    pytest.importorskip("h5py")
+    p = tmp_path / "smap_am_20230701.nc4"
+    qf = np.array([[0, 1], [0, 0]], dtype=np.uint16)
+    _write_day_with_bounds(p, [[0.10, 0.20], [0.60, 0.30]], qf)
+    strict = io._read_day(str(p), valid_range=True)
+    assert strict[0, 0] == pytest.approx(0.10)
+    assert np.isnan(strict[0, 1])          # not recommended
+    assert np.isnan(strict[1, 0])          # above the stated range
+    assert strict[1, 1] == pytest.approx(0.30)
+
+
+@pytest.mark.parametrize("missing", ["valid_min", "valid_max"])
+def test_the_range_screen_is_refused_when_the_file_states_no_bound(tmp_path, missing):
+    """A bound typed in here would be a second source for the product's own."""
+    pytest.importorskip("h5py")
+    p = tmp_path / "smap_am_20230701.nc4"
+    bounds = {"valid_min": 0.02, "valid_max": 0.5}
+    bounds[missing] = None
+    _write_day_with_bounds(p, [[0.10, 0.20]], np.zeros((1, 2), dtype=np.uint16),
+                           **bounds)
+    with pytest.raises(ValueError, match=missing):
+        io._read_day(str(p), valid_range=True)
+    assert np.all(np.isfinite(io._read_day(str(p))))
+
+
+def test_load_smap_monthly_reports_what_the_range_screen_removed(tmp_path):
+    pytest.importorskip("h5py")
+    lat1d = np.array([0.0, 1.0])
+    lon1d = np.array([0.0, 180.0])
+    _write(tmp_path / io.COORDS_FILE,
+           {"latitude": np.repeat(lat1d[:, None], 2, axis=1),
+            "longitude": np.repeat(lon1d[None, :], 2, axis=0)})
+    qf = np.zeros((2, 2), dtype=np.uint16)
+    _write_day_with_bounds(tmp_path / "smap_am_20230701.nc4",
+                           [[0.10, 0.01], [0.30, 0.40]], qf)
+    _write_day_with_bounds(tmp_path / "smap_am_20230702.nc4",
+                           [[0.30, 0.70], [0.30, 0.40]], qf)
+
+    base, _, base_stats = io.load_smap_monthly(
+        "202307", str(tmp_path), lat1d, lon1d, download=False, verbose=False)
+    assert "valid_range" not in base_stats
+    assert base[0, 1] == pytest.approx(0.355)      # (0.01 + 0.70) / 2
+
+    strict, nday, stats = io.load_smap_monthly(
+        "202307", str(tmp_path), lat1d, lon1d, download=False, verbose=False,
+        valid_range=True)
+    assert np.isnan(strict[0, 1]) and nday[0, 1] == 0
+    assert strict[0, 0] == pytest.approx(0.20)
+    # the quality screen's own count keeps its meaning in both modes
+    assert stats["fine_kept_by_screen"] == base_stats["fine_kept_by_screen"] == 8
+    assert stats["valid_range"]["fine_rejected"] == 2
+    assert stats["valid_range"]["fine_kept"] == 6
+    assert stats["valid_range"]["valid_min"] == pytest.approx(0.02)
+    assert stats["valid_range"]["valid_max"] == pytest.approx(0.5)
+    assert stats["valid_range"]["units"] == "cm**3/cm**3"
+    assert stats["target_cells_with_data"] == 3
+
+
+def test_a_month_whose_days_state_different_ranges_is_refused(tmp_path):
+    """One range is reported for the month, so the days have to agree on it."""
+    pytest.importorskip("h5py")
+    lat1d = np.array([0.0, 1.0])
+    lon1d = np.array([0.0, 180.0])
+    _write(tmp_path / io.COORDS_FILE,
+           {"latitude": np.repeat(lat1d[:, None], 2, axis=1),
+            "longitude": np.repeat(lon1d[None, :], 2, axis=0)})
+    qf = np.zeros((2, 2), dtype=np.uint16)
+    field = [[0.10, 0.20], [0.30, 0.40]]
+    _write_day_with_bounds(tmp_path / "smap_am_20230701.nc4", field, qf)
+    _write_day_with_bounds(tmp_path / "smap_am_20230702.nc4", field, qf,
+                           valid_max=0.6)
+    with pytest.raises(ValueError, match="states the range"):
+        io.load_smap_monthly("202307", str(tmp_path), lat1d, lon1d,
+                             download=False, verbose=False, valid_range=True)

@@ -218,10 +218,11 @@ def calendar_month_departures(stack, months):
     them, which removes the seasonal cycle. Subtracting one constant per cell
     does not, because a correlation is unchanged by it.
 
-    The climatology is only as long as the record. With three years, each
-    calendar month keeps two degrees of freedom, so a correlation of these
-    departures is a statement about a short record and should be reported
-    with its length.
+    The climatology is only as long as the record. With three years, a cell
+    with all three observations of a calendar month keeps two degrees of
+    freedom for that month, and a cell missing one keeps one, so a
+    correlation of these departures is a statement about a short record and
+    should be reported with its length.
     """
     import warnings
 
