@@ -90,3 +90,11 @@ water bodies, and those biases differ by region rather than being uniform. Five 
 are a sample of the globe and not the globe. The comparison also crosses spatial scales,
 from 30 m to a third of a degree, and aggregation by averaging is one defensible choice
 among several.
+
+## Note added 2026-11-24
+
+The text above gives the grid spacing as a third of a degree in one sentence.
+That was the spacing of the historical product. The grid of the reconstructed
+product is 0.25 degree, and the test ran on it. Nothing in the registered
+method or criterion depends on the figure, and the text above is left exactly
+as it was registered.

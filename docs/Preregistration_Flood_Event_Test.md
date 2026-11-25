@@ -101,3 +101,11 @@ so nothing here speaks to timing error in the sense an operational product would
 report. The test also uses the same reference family as the rest of the inundation
 work, so it inherits the shared passive-microwave error structure noted in section
 2.2 of the paper. It says nothing about drought or drying outside these two cases.
+
+## Note added 2026-11-24
+
+The text above gives the grid spacing as a third of a degree in one sentence.
+That was the spacing of the historical product. The grid of the reconstructed
+product is 0.25 degree, and the test ran on it. Nothing in the registered
+method or criterion depends on the figure, and the text above is left exactly
+as it was registered.
