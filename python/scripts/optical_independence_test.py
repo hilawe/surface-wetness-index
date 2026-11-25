@@ -33,6 +33,7 @@ import glob
 import json
 import os
 import sys
+import tempfile
 
 import numpy as np
 
@@ -174,6 +175,11 @@ def resummarize(result_path, out_path):
     """
     with open(result_path) as fh:
         out = json.load(fh)
+    if set(out["tiles"]) != set(TILES):
+        raise ValueError(
+            "the stored result does not hold exactly the five registered "
+            f"tiles ({sorted(out['tiles'])}), so its summary is not the "
+            "five-tile one this adds to")
     again = tile_medians(out["tiles"])
     if again != out.get("within_tile_median"):
         raise ValueError(
@@ -181,8 +187,23 @@ def resummarize(result_path, out_path):
             f"tiles ({out.get('within_tile_median')} against {again}), so "
             "this result is not one to add a summary to")
     out["signal_tile_median"] = signal_tile_median(out["tiles"])
-    with open(out_path, "w") as fh:
-        json.dump(out, fh, indent=2, sort_keys=True)
+    # Written beside the destination, under a name nothing else has, and
+    # moved into place when complete. The default destination is the input,
+    # and a write that fails partway would otherwise leave one brace where
+    # the stored result was. A fixed staging name could be the input itself.
+    folder, name = os.path.split(os.path.abspath(out_path))
+    handle, staged = tempfile.mkstemp(dir=folder, prefix=name + ".", suffix=".part")
+    try:
+        with os.fdopen(handle, "w") as fh:
+            json.dump(out, fh, indent=2, sort_keys=True)
+        # mkstemp makes the file private. A result file is an ordinary one.
+        mask = os.umask(0)
+        os.umask(mask)
+        os.chmod(staged, 0o666 & ~mask)
+        os.replace(staged, out_path)
+    finally:
+        if os.path.exists(staged):
+            os.remove(staged)
     s = out["signal_tile_median"]
     print(f"four tiles with a signal: index vs optical {s['vs_optical']:+.3f}, "
           f"index vs SWAMPS {s['vs_swamps']:+.3f}")

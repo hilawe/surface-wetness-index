@@ -54,3 +54,26 @@ def test_the_sensitivity_refuses_a_composite_made_without_the_range_screen():
     with pytest.raises(ValueError, match="valid_range"):
         drv.range_sensitivity(wet, snowf, plat, sm, {"screen": "recommended"},
                               baseline_n=1200)
+
+
+def test_the_stored_july_result_holds_the_sensitivity_the_paper_states():
+    """Section 5.3 says 51 cells go and no printed value moves."""
+    import json
+    import os
+    stored = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          "..", "..", "results", "validate_smap_F16_202307.json")
+    if not os.path.exists(stored):
+        pytest.skip("the stored July result is not in this tree")
+    with open(stored) as fh:
+        res = json.load(fh)
+    sens = res["valid_range_sensitivity"]
+    assert sens["n_cells_baseline"] == res["n_cells"] == 144560
+    assert sens["cells_removed"] == 51
+    assert (round(sens["valid_min"], 2), sens["valid_max"]) == (0.02, 0.5)
+    pairs = [(sens["spearman"], res["spearman"]),
+             (sens["pearson"], res["pearson"]),
+             (sens["detection_contrast_ratio"], res["detection_contrast"]["ratio"])]
+    pairs += [(sens["area_weighted"][k], res["area_weighted"][k])
+              for k in ("spearman_area_weighted", "pearson_area_weighted",
+                        "contrast_area_weighted")]
+    assert all(round(a, 2) == round(b, 2) for a, b in pairs)

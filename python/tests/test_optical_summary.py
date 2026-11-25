@@ -69,3 +69,70 @@ def test_a_stored_result_whose_summary_does_not_follow_from_its_tiles_is_refused
     with pytest.raises(ValueError, match="within_tile_median"):
         opt.resummarize(str(path), str(path))
     assert path.read_text() == text
+
+
+def test_a_stored_result_missing_a_registered_tile_is_refused(tmp_path):
+    """A four-tile result with a matching four-tile summary is not the
+    five-tile result the summary is meant to be added to."""
+    four = {k: v for k, v in TILES.items() if k != opt.CONTROL_TILE}
+    path, _ = _stored(tmp_path, tiles=four)
+    text = path.read_text()
+    with pytest.raises(ValueError, match="five registered tiles"):
+        opt.resummarize(str(path), str(path))
+    assert path.read_text() == text
+
+
+def test_a_failed_write_leaves_the_stored_result_as_it_was(tmp_path, monkeypatch):
+    """The default destination is the input itself."""
+    path, _ = _stored(tmp_path)
+    text = path.read_text()
+
+    def broken(obj, fh, **kwargs):
+        fh.write("{")
+        raise OSError("the disk is full")
+
+    monkeypatch.setattr(opt.json, "dump", broken)
+    with pytest.raises(OSError):
+        opt.resummarize(str(path), str(path))
+    assert path.read_text() == text
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["optical.json"]
+
+
+def test_a_failed_write_spares_an_input_named_like_a_staging_file(tmp_path, monkeypatch):
+    """With a fixed staging name, an input of that name was the staging file."""
+    path, _ = _stored(tmp_path)
+    source = tmp_path / "optical.json.part"
+    path.rename(source)
+    text = source.read_text()
+
+    def broken(obj, fh, **kwargs):
+        fh.write("{")
+        raise OSError("the disk is full")
+
+    monkeypatch.setattr(opt.json, "dump", broken)
+    with pytest.raises(OSError):
+        opt.resummarize(str(source), str(tmp_path / "optical.json"))
+    assert source.read_text() == text
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["optical.json.part"]
+
+
+def test_the_written_result_is_an_ordinary_readable_file(tmp_path):
+    import stat
+    path, _ = _stored(tmp_path)
+    assert opt.resummarize(str(path), str(path)) == 0
+    mode = stat.S_IMODE(path.stat().st_mode)
+    assert mode & stat.S_IRGRP and mode & stat.S_IROTH
+
+
+def test_the_stored_result_holds_the_summary_table_4_prints():
+    """Table 4 of the manuscript prints +0.57 and +0.78 for the four tiles."""
+    import os
+    stored = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                          "..", "..", "results", "optical_independence_test.json")
+    if not os.path.exists(stored):
+        pytest.skip("the stored optical result is not in this tree")
+    with open(stored) as fh:
+        out = json.load(fh)
+    assert out["signal_tile_median"] == opt.signal_tile_median(out["tiles"])
+    assert round(out["signal_tile_median"]["vs_optical"], 2) == 0.57
+    assert round(out["signal_tile_median"]["vs_swamps"], 2) == 0.78
