@@ -18,8 +18,6 @@ def load_swvl1(month, path):
 
     Uses the local file at `path` if present, else downloads via the CDS API.
     """
-    import netCDF4 as nc
-
     if not os.path.exists(path):
         import cdsapi
         cdsapi.Client().retrieve(DATASET, {
@@ -31,13 +29,24 @@ def load_swvl1(month, path):
 
     with open(path, "rb") as fh:
         is_zip = fh.read(2) == b"PK"
-    open_path = path
-    if is_zip:
-        import zipfile
+    if not is_zip:
+        return _read_swvl1(path)
+    # The archive member is unpacked into a directory of its own and removed
+    # after reading. It used to be unpacked beside the archive, which wrote
+    # into the input data directory on every read and gave every month the
+    # same member name, so two months read at once could overwrite each other.
+    import tempfile
+    import zipfile
+    with tempfile.TemporaryDirectory(prefix="era5land_") as tmp:
         with zipfile.ZipFile(path) as z:
             inner = next(n for n in z.namelist() if n.endswith(".nc"))
-            z.extract(inner, os.path.dirname(path) or ".")
-            open_path = os.path.join(os.path.dirname(path) or ".", inner)
+            z.extract(inner, tmp)
+        return _read_swvl1(os.path.join(tmp, inner))
+
+
+def _read_swvl1(open_path):
+    """Read the soil-water field of one NetCDF file as (lat_asc, lon_0360, sm)."""
+    import netCDF4 as nc
 
     ds = nc.Dataset(open_path)
     try:
