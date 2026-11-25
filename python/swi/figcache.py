@@ -30,6 +30,30 @@ _CACHE_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "..", "results", "figure_cache"))
 
 
+# The resolution a figure is saved at. The copies kept with the repository,
+# which the PDF builds and the README embed, are at 150 dots per inch. A
+# journal revision needs the same figures at print resolution, and AMS asks
+# for 600 to 900 pixels per inch at publication size for a figure that
+# combines shading, lines and text. Setting SWI_FIG_DPI redraws any figure at
+# another resolution with nothing else about it changed.
+SCREEN_DPI = 150
+DPI_ENV = "SWI_FIG_DPI"
+
+
+def save_dpi():
+    """The resolution to save a figure at, SCREEN_DPI unless the setting says."""
+    raw = os.environ.get(DPI_ENV, "").strip()
+    if not raw:
+        return SCREEN_DPI
+    try:
+        dpi = int(raw)
+    except ValueError:
+        raise ValueError(f"{DPI_ENV}={raw!r} is not a whole number") from None
+    if not 72 <= dpi <= 1200:
+        raise ValueError(f"{DPI_ENV}={dpi} is outside 72 to 1200")
+    return dpi
+
+
 def cache_path(figure):
     """Return the committed cache path for a figure name (e.g. 'fig_product')."""
     return os.path.join(_CACHE_DIR, figure + ".npz")

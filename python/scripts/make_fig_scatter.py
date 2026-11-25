@@ -18,6 +18,7 @@ import numpy as np
 
 from swi import grids, validate as val
 from swi.io_esacci import load_cci_monthly
+from swi import figcache
 
 
 def opt(argv, flag, default=None):
@@ -115,7 +116,7 @@ def main():
              bbox=dict(boxstyle="round,pad=0.15", facecolor="white",
                        alpha=0.75, edgecolor="none"))
 
-    fig.savefig(out, dpi=150)
+    fig.savefig(out, dpi=figcache.save_dpi())
     print(f"wrote {out}")
     return 0
 

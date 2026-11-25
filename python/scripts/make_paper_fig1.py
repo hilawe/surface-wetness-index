@@ -61,7 +61,7 @@ def _plot(lat, lon, wet, temp, snow, month, pass_, out):
                 bbox=dict(boxstyle="round,pad=0.15", facecolor="white",
                           alpha=0.75, edgecolor="none"))
     fig.tight_layout()
-    fig.savefig(out, dpi=150)
+    fig.savefig(out, dpi=figcache.save_dpi())
     print(f"wrote {out}")
 
 

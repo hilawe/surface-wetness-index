@@ -23,6 +23,7 @@ import os
 import sys
 
 import numpy as np
+from swi import figcache
 
 
 def opt(argv, flag, default=None):
@@ -96,7 +97,7 @@ def fig_calibration(results, out, plt):
         ax2.text(xi, tt + 0.6, f"{tt:.1f} total", ha="center", fontsize=tick)
     _panel_label(ax2, "b", 12 * sc)
 
-    fig.savefig(os.path.join(out, "fig_calibration.png"), dpi=150)
+    fig.savefig(os.path.join(out, "fig_calibration.png"), dpi=figcache.save_dpi())
     plt.close(fig)
 
 
@@ -144,7 +145,7 @@ def fig_transfer(results, out, plt):
     ax2.tick_params(labelsize=tick)
     _panel_label(ax2, "b", 12 * sc)
 
-    fig.savefig(os.path.join(out, "fig_transfer.png"), dpi=150)
+    fig.savefig(os.path.join(out, "fig_transfer.png"), dpi=figcache.save_dpi())
     plt.close(fig)
 
 
@@ -181,7 +182,7 @@ def fig_optical(results, out, plt):
     ax.legend(fontsize=tick, loc="lower right", frameon=False)
     ax.tick_params(labelsize=tick)
     fig.tight_layout()
-    fig.savefig(os.path.join(out, "fig_optical.png"), dpi=150)
+    fig.savefig(os.path.join(out, "fig_optical.png"), dpi=figcache.save_dpi())
     plt.close(fig)
 
 
@@ -196,18 +197,18 @@ def fig_flood(results, out, plt):
     t, lab, tick = 10 * sc, 10 * sc, 9 * sc
     fig, ax = plt.subplots(figsize=(w, 3.8))
     ax.axvspan(5.5, 8.5, color="0.88", zorder=0)
-    ax.text(7.0, 5.15, "July to September box-car", ha="center",
+    ax.text(7.0, 5.35, "July to September box-car", ha="center",
             fontsize=tick, color="0.35")
     l1, = ax.plot(x, g["index_anomaly_series"], "o-", color="C0", lw=1.5,
                   label="index departure (left axis)")
     ax.axhline(0.0, color="0.4", lw=0.9)
     ax.set_ylabel("index departure from 1998 mean", fontsize=lab)
-    ax.set_ylim(-4.8, 5.6)
+    ax.set_ylim(-4.8, 6.0)
     ax2 = ax.twinx()
     l2, = ax2.plot(x, g["reference_anomaly_series"], "s--", color="C2", lw=1.5,
                    label="SWAMPS departure (right axis)")
     ax2.set_ylabel("fractional water departure from 1998 mean", fontsize=lab)
-    ax2.set_ylim(-0.16, 0.187)
+    ax2.set_ylim(-0.16, 0.200)
     ax.set_xticks(x)
     ax.set_xticklabels(months, fontsize=tick)
     ax.tick_params(labelsize=tick)
@@ -227,7 +228,7 @@ def fig_flood(results, out, plt):
     ax.legend(handles=[l1, l2], fontsize=tick, loc="upper left",
               bbox_to_anchor=(0.02, 0.97), frameon=False)
     fig.tight_layout()
-    fig.savefig(os.path.join(out, "fig_flood.png"), dpi=150)
+    fig.savefig(os.path.join(out, "fig_flood.png"), dpi=figcache.save_dpi())
     plt.close(fig)
 
 

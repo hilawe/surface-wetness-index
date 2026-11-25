@@ -240,21 +240,24 @@ def _map(lat, lon, wet, sm, mask, month, out):
     roll = lon.size // 2; ext = [-180, 180, lat.min(), lat.max()]
     v = lambda a: np.roll(np.where(mask, a, np.nan), roll, axis=1)
     fig, ax = plt.subplots(2, 1, figsize=(w, 4.8))
-    for a, letter, (img, ttl, cm, lo, hi) in zip(ax, ("(a)", "(b)"), [
-            (v(wet), f"SWI WET (F-16, {month})", "YlGnBu", 0, 100),
-            (v(sm), "SMAP L-band soil moisture (AM)", "YlGnBu", 0, 0.5)]):
+    for a, letter, (img, ttl, cm, lo, hi, unit) in zip(ax, ("(a)", "(b)"), [
+            (v(wet), f"SWI WET (F-16, {month})", "YlGnBu", 0, 100,
+             r"wetness index (0 to 100)"),
+            (v(sm), "SMAP L-band soil moisture (AM)", "YlGnBu", 0, 0.5,
+             r"soil moisture (m$^3$/m$^3$)")]):
         im = a.imshow(img, origin="lower", extent=ext, aspect="auto", cmap=cm,
                       vmin=lo, vmax=hi)
         a.set_title(ttl, fontsize=tsz, pad=4)
         a.tick_params(labelsize=tick)
         cb = fig.colorbar(im, ax=a, shrink=0.85); cb.ax.tick_params(labelsize=tick)
+        cb.set_label(unit, fontsize=tick)
         a.text(0.015, 0.96, letter, transform=a.transAxes, fontsize=plab,
                fontweight="bold", va="top", ha="left",
                bbox=dict(boxstyle="round,pad=0.15", facecolor="white",
                          alpha=0.75, edgecolor="none"))
     fig.suptitle("Surface Wetness Index vs SMAP L-band soil moisture "
                  "(co-located land)", fontsize=tsz * 1.1)
-    fig.tight_layout(); fig.savefig(out, dpi=150); print(f"wrote {out}")
+    fig.tight_layout(); fig.savefig(out, dpi=figcache.save_dpi()); print(f"wrote {out}")
 
 
 if __name__ == "__main__":

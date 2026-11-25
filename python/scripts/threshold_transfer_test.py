@@ -2,6 +2,8 @@
 
     python -m scripts.threshold_transfer_test PRODUCT_A.nc SWAMPS_A.nc LABEL_A \
         PRODUCT_B.nc SWAMPS_B.nc LABEL_B [--out J.json] [--png F.png]
+    python -m scripts.threshold_transfer_test --from-result J.json --png F.png \
+        [--labels LABEL_A LABEL_B]
 
 The paper's categorical scores use the natural operating point, any positive
 monthly index, which was never tuned. This driver sweeps the index threshold in
@@ -22,6 +24,7 @@ import sys
 import numpy as np
 
 from swi import grids, validate as val
+from swi import figcache
 
 
 def opt(argv, flag, default=None):
@@ -71,6 +74,12 @@ def sweep(W, F):
 
 def main():
     argv = sys.argv
+    if "--from-result" in argv:
+        order = None
+        if "--labels" in argv:
+            i = argv.index("--labels")
+            order = argv[i + 1:i + 3]
+        return redraw(opt(argv, "--from-result"), opt(argv, "--png"), order)
     if len(argv) < 7:
         print(__doc__)
         return 1
@@ -127,39 +136,70 @@ def main():
     print(f"wrote {out_path}")
 
     if png:
-        import matplotlib
-        matplotlib.use("Agg")
-        matplotlib.rcParams["axes.unicode_minus"] = False
-        import matplotlib.pyplot as plt
-        w = 7.5
-        sc = w / 6.5
-        t_, lab_, tick = 10 * sc, 10 * sc, 9 * sc
-        fig, ax = plt.subplots(figsize=(w, 4.2))
-        def disp(lab):
-            return (lab.replace("_", ", ").replace("F16", "F-16")
-                    .replace("F13", "F-13").replace("July", "July "))
-        for lab, rows, best, color in ((disp(la), rows_a, best_a, "C0"),
-                                       (disp(lb), rows_b, best_b, "C1")):
-            pod = [r["POD"] for r in rows]
-            prec = [r["precision"] for r in rows]
-            ax.plot(pod, prec, "o-", ms=4, lw=1.4, color=color, label=lab)
-            ax.plot(rows[0]["POD"], rows[0]["precision"], "s", ms=9,
-                    mfc="none", mec=color, mew=1.6)
-            ax.plot(best["POD"], best["precision"], "*", ms=14, color=color)
-        ax.plot([], [], "s", ms=9, mfc="none", mec="0.3", mew=1.6,
-                label="natural threshold, WET > 0")
-        ax.plot([], [], "*", ms=12, color="0.3", label="best CSI threshold")
-        ax.set_xlabel("probability of detection", fontsize=lab_)
-        ax.set_ylabel("precision (1 - false alarm ratio)", fontsize=lab_)
-        ax.set_title("Categorical skill across index thresholds, "
-                     "fractional water above 0.05", fontsize=t_, pad=5)
-        ax.set_xlim(0, 1)
-        ax.set_ylim(0, 1)
-        ax.legend(fontsize=tick, loc="lower left", frameon=False)
-        ax.tick_params(labelsize=tick)
-        fig.tight_layout()
-        fig.savefig(png, dpi=150)
-        print(f"wrote {png}")
+        draw(la, rows_a, best_a, lb, rows_b, best_b, png)
+    return 0
+
+
+def draw(la, rows_a, best_a, lb, rows_b, best_b, png):
+    """Draw the precision-recall figure from the two sweeps."""
+    import matplotlib
+    matplotlib.use("Agg")
+    matplotlib.rcParams["axes.unicode_minus"] = False
+    import matplotlib.pyplot as plt
+    w = 7.5
+    sc = w / 6.5
+    t_, lab_, tick = 10 * sc, 10 * sc, 9 * sc
+    fig, ax = plt.subplots(figsize=(w, 4.2))
+
+    def disp(lab):
+        return (lab.replace("_", ", ").replace("F16", "F-16")
+                .replace("F13", "F-13").replace("July", "July "))
+    for lab, rows, best, color in ((disp(la), rows_a, best_a, "C0"),
+                                   (disp(lb), rows_b, best_b, "C1")):
+        pod = [r["POD"] for r in rows]
+        prec = [r["precision"] for r in rows]
+        ax.plot(pod, prec, "o-", ms=4, lw=1.4, color=color, label=lab)
+        ax.plot(rows[0]["POD"], rows[0]["precision"], "s", ms=9,
+                mfc="none", mec=color, mew=1.6)
+        ax.plot(best["POD"], best["precision"], "*", ms=14, color=color)
+    ax.plot([], [], "s", ms=9, mfc="none", mec="0.3", mew=1.6,
+            label="natural threshold, WET > 0")
+    ax.plot([], [], "*", ms=12, color="0.3", label="best CSI threshold")
+    ax.set_xlabel("probability of detection", fontsize=lab_)
+    ax.set_ylabel("precision (1 - false alarm ratio)", fontsize=lab_)
+    ax.set_title("Categorical skill across index thresholds, "
+                 "fractional water above 0.05", fontsize=t_, pad=5)
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.legend(fontsize=tick, loc="lower left", frameon=False)
+    ax.tick_params(labelsize=tick)
+    fig.tight_layout()
+    fig.savefig(png, dpi=figcache.save_dpi())
+    print(f"wrote {png}")
+
+
+def redraw(result_path, png, order=None):
+    """Redraw the figure from a committed result file, with no input archive.
+
+    The result file holds both sweeps in full, so the figure needs nothing
+    else. Which sweep is drawn first decides the colors and the legend order,
+    and the result file does not record it, so the two labels are given in
+    the order the original run had them.
+    """
+    with open(result_path) as fh:
+        res = json.load(fh)
+    labels = [k for k, v in res.items()
+              if isinstance(v, dict) and "curve" in v and "best_csi" in v]
+    if len(labels) != 2:
+        raise SystemExit(f"{result_path} does not hold two sweeps: {labels}")
+    if order is not None:
+        if sorted(order) != sorted(labels):
+            raise SystemExit(f"--labels {order} are not the two sweeps of "
+                             f"{result_path}: {labels}")
+        labels = list(order)
+    la, lb = labels
+    draw(la, res[la]["curve"], res[la]["best_csi"],
+         lb, res[lb]["curve"], res[lb]["best_csi"], png)
     return 0
 
 

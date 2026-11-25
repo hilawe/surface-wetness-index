@@ -176,7 +176,7 @@ def _map(lat, lon, r, out):
     cb = fig.colorbar(im, ax=ax, shrink=0.85, label="per-cell temporal correlation r")
     cb.set_label("per-cell temporal correlation r", fontsize=lab)
     cb.ax.tick_params(labelsize=tick)
-    fig.tight_layout(); fig.savefig(out, dpi=150)
+    fig.tight_layout(); fig.savefig(out, dpi=figcache.save_dpi())
     print(f"wrote {out}")
 
 
